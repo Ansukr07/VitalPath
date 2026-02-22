@@ -2,13 +2,30 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { reportService } from '../../api/services';
+import {
+    ArrowLeft, RefreshCw, Loader2, AlertTriangle, Clock,
+    User, Stethoscope, Bot, Crosshair, ClipboardList,
+    BookOpenText, History, Pill, Microscope, BarChart3,
+    TriangleAlert, CalendarCheck, Dna, Tag, FileText,
+    Info, UserPen, CheckCircle2, XCircle, AlertCircle,
+    TestTubes, Thermometer, Tablets, FlaskConical,
+    Heart, Scan, BrainCircuit, Radio, Activity, FileCheck2
+} from 'lucide-react';
 import './PatientDashboard.css';
 import './ReportDetail.css';
 
 const TYPE_ICONS = {
-    blood_test: '🧪', xray: '🩻', mri: '🧠', ct_scan: '📡',
-    ecg: '💓', urine_test: '🧫', biopsy: '🔬', prescription: '💊',
-    discharge_summary: '📋', consultation: '🩺', other: '📄',
+    blood_test: TestTubes,
+    xray: Scan,
+    mri: BrainCircuit,
+    ct_scan: Radio,
+    ecg: Activity,
+    urine_test: FlaskConical,
+    biopsy: Microscope,
+    prescription: Tablets,
+    discharge_summary: ClipboardList,
+    consultation: Stethoscope,
+    other: FileText,
 };
 
 export default function ReportDetail() {
@@ -36,11 +53,10 @@ export default function ReportDetail() {
         setReparsing(true);
         try {
             await reportService.reparse(id);
-            // Poll for updated data after a delay
             setTimeout(async () => {
                 await fetchReport();
                 setReparsing(false);
-            }, 15000); // 15s for LLM + BERT processing
+            }, 15000);
         } catch {
             setReparsing(false);
             alert('Re-analysis failed. Please try again.');
@@ -60,9 +76,11 @@ export default function ReportDetail() {
         <div className="pd-wrapper">
             <Sidebar />
             <main className="pd-content">
-                <button className="rd-back-btn" onClick={() => navigate('/patient/reports')}>← Back to Reports</button>
+                <button className="rd-back-btn" onClick={() => navigate('/patient/reports')}>
+                    <ArrowLeft size={16} /> Back to Reports
+                </button>
                 <div className="rd-section rd-pending-state">
-                    <div className="rd-pending-icon">⚠️</div>
+                    <AlertTriangle size={48} className="rd-pending-icon-svg" />
                     <div className="rd-pending-title">{error || 'Report not found'}</div>
                 </div>
             </main>
@@ -84,11 +102,15 @@ export default function ReportDetail() {
     const diagnosis = parsed.diagnosis || [];
     const pastHistory = parsed.pastMedicalHistory || [];
 
+    const TypeIcon = TYPE_ICONS[report.reportType] || FileText;
+
     return (
         <div className="pd-wrapper">
             <Sidebar />
             <main className="pd-content">
-                <button className="rd-back-btn" onClick={() => navigate('/patient/reports')}>← Back to Reports</button>
+                <button className="rd-back-btn" onClick={() => navigate('/patient/reports')}>
+                    <ArrowLeft size={16} /> Back to Reports
+                </button>
 
                 {/* ── Header ── */}
                 <div className="rd-header">
@@ -96,10 +118,10 @@ export default function ReportDetail() {
                         <h1>{report.originalName}</h1>
                         <div className="rd-meta-row">
                             <span className="rd-badge rd-badge-type">
-                                {TYPE_ICONS[report.reportType] || '📄'} {report.reportType?.replace(/_/g, ' ')}
+                                <TypeIcon size={14} /> {report.reportType?.replace(/_/g, ' ')}
                             </span>
                             <span className={`rd-badge ${isParsed ? 'rd-badge-parsed' : isFailed ? 'rd-badge-failed' : 'rd-badge-pending'}`}>
-                                {isParsed ? '✓ Parsed' : isFailed ? '✗ Failed' : '⏳ Processing'}
+                                {isParsed ? <><CheckCircle2 size={12} /> Parsed</> : isFailed ? <><XCircle size={12} /> Failed</> : <><Loader2 size={12} className="rd-spin" /> Processing</>}
                             </span>
                             <span className="rd-date">
                                 Uploaded {new Date(report.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -115,26 +137,16 @@ export default function ReportDetail() {
                         className="rd-reparse-btn"
                         onClick={handleReparse}
                         disabled={reparsing}
-                        style={{
-                            background: reparsing ? '#94a3b8' : 'var(--pd-accent)',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '0.65rem 1.25rem',
-                            fontSize: '0.85rem',
-                            fontWeight: 700,
-                            cursor: reparsing ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap',
-                        }}
                     >
-                        {reparsing ? '⏳ Re-analysing...' : '🔄 Re-analyse'}
+                        {reparsing
+                            ? <><Loader2 size={16} className="rd-spin" /> Re-analysing...</>
+                            : <><RefreshCw size={16} /> Re-analyse</>}
                     </button>
                 </div>
 
                 {reparsing && (
                     <div className="rd-section rd-pending-state rd-full-width" style={{ marginBottom: '2rem' }}>
-                        <div className="rd-pending-icon">⏳</div>
+                        <Loader2 size={48} className="rd-pending-icon-svg rd-spin" />
                         <div className="rd-pending-title">Re-analysing Report...</div>
                         <div className="rd-pending-desc">
                             The AI is re-processing this document with our latest analysis engine.
@@ -145,7 +157,7 @@ export default function ReportDetail() {
 
                 {!isParsed && !isFailed ? (
                     <div className="rd-section rd-pending-state">
-                        <div className="rd-pending-icon">⏳</div>
+                        <Clock size={48} className="rd-pending-icon-svg" />
                         <div className="rd-pending-title">Analysis in Progress</div>
                         <div className="rd-pending-desc">
                             Our AI engine is extracting structured clinical data from your document.
@@ -154,7 +166,7 @@ export default function ReportDetail() {
                     </div>
                 ) : isFailed ? (
                     <div className="rd-section rd-pending-state">
-                        <div className="rd-pending-icon">⚠️</div>
+                        <AlertTriangle size={48} className="rd-pending-icon-svg" />
                         <div className="rd-pending-title">Analysis Failed</div>
                         <div className="rd-pending-desc">
                             Our system was unable to process this document. This may happen with scanned images or
@@ -168,14 +180,14 @@ export default function ReportDetail() {
                         {(patientInfo.name || doctorInfo.name) && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">👤</span>
+                                    <User size={20} className="rd-section-icon-svg" />
                                     Patient & Doctor Information
                                 </div>
                                 <div className="rd-info-grid">
                                     {patientInfo.name && (
                                         <div className="rd-info-card">
                                             <div className="rd-info-card-header">
-                                                <span style={{ fontSize: '1.5rem' }}>🧑</span>
+                                                <div className="rd-icon-box rd-icon-patient"><User size={18} /></div>
                                                 <span className="rd-section-label">Patient</span>
                                             </div>
                                             <div className="rd-info-value">{patientInfo.name}</div>
@@ -188,7 +200,7 @@ export default function ReportDetail() {
                                     {doctorInfo.name && (
                                         <div className="rd-info-card">
                                             <div className="rd-info-card-header">
-                                                <span style={{ fontSize: '1.5rem' }}>👨‍⚕️</span>
+                                                <div className="rd-icon-box rd-icon-doctor"><Stethoscope size={18} /></div>
                                                 <span className="rd-section-label">Doctor</span>
                                             </div>
                                             <div className="rd-info-value">{doctorInfo.name}</div>
@@ -205,7 +217,7 @@ export default function ReportDetail() {
                         {/* ── AI Summary ── */}
                         <div className="rd-section rd-full-width">
                             <div className="rd-section-title">
-                                <span className="rd-section-icon">🤖</span>
+                                <Bot size={20} className="rd-section-icon-svg" />
                                 AI Summary
                             </div>
                             <p className="rd-summary-text">
@@ -217,7 +229,7 @@ export default function ReportDetail() {
                         {chiefComplaints.length > 0 && (
                             <div className="rd-section">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">🎯</span>
+                                    <Crosshair size={20} className="rd-section-icon-svg" />
                                     Chief Complaints
                                 </div>
                                 <ul className="rd-list">
@@ -230,7 +242,7 @@ export default function ReportDetail() {
                         {diagnosis.length > 0 && (
                             <div className="rd-section">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">📋</span>
+                                    <ClipboardList size={20} className="rd-section-icon-svg" />
                                     Diagnosis / Impressions
                                 </div>
                                 <div className="rd-flagged-list">
@@ -245,7 +257,7 @@ export default function ReportDetail() {
                         {parsed.historyOfPresentIllness && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">📖</span>
+                                    <BookOpenText size={20} className="rd-section-icon-svg" />
                                     History of Present Illness
                                 </div>
                                 <p className="rd-summary-text">{parsed.historyOfPresentIllness}</p>
@@ -256,7 +268,7 @@ export default function ReportDetail() {
                         {pastHistory.length > 0 && (
                             <div className="rd-section">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">🕰️</span>
+                                    <History size={20} className="rd-section-icon-svg" />
                                     Past Medical History
                                 </div>
                                 <ul className="rd-list">
@@ -269,7 +281,7 @@ export default function ReportDetail() {
                         {medications.length > 0 && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">💊</span>
+                                    <Pill size={20} className="rd-section-icon-svg" />
                                     Medications & Prescriptions
                                 </div>
                                 <table className="rd-kv-table">
@@ -301,7 +313,7 @@ export default function ReportDetail() {
                         {investigations.length > 0 && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">🔬</span>
+                                    <Microscope size={20} className="rd-section-icon-svg" />
                                     Investigation Results
                                 </div>
                                 <table className="rd-kv-table">
@@ -317,7 +329,9 @@ export default function ReportDetail() {
                                         {investigations.map((inv, i) => (
                                             <tr key={i} className={inv.status === 'abnormal' || inv.status === 'critical' ? 'rd-kv-flagged' : ''}>
                                                 <td style={{ fontWeight: 600 }}>
-                                                    {(inv.status === 'abnormal' || inv.status === 'critical') && <span style={{ marginRight: '0.5rem' }}>🔴</span>}
+                                                    {(inv.status === 'abnormal' || inv.status === 'critical') && (
+                                                        <AlertCircle size={14} style={{ marginRight: '0.4rem', color: '#dc2626', verticalAlign: 'middle' }} />
+                                                    )}
                                                     {inv.name || inv}
                                                 </td>
                                                 <td>{inv.result || '—'}</td>
@@ -340,7 +354,7 @@ export default function ReportDetail() {
                         {keyValueEntries.length > 0 && investigations.length === 0 && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">📊</span>
+                                    <BarChart3 size={20} className="rd-section-icon-svg" />
                                     Extracted Test Values
                                 </div>
                                 <table className="rd-kv-table">
@@ -360,7 +374,7 @@ export default function ReportDetail() {
                                             return (
                                                 <tr key={key} className={isFlagged ? 'rd-kv-flagged' : ''}>
                                                     <td>
-                                                        {isFlagged && <span style={{ marginRight: '0.5rem' }}>🔴</span>}
+                                                        {isFlagged && <AlertCircle size={14} style={{ marginRight: '0.4rem', color: '#dc2626', verticalAlign: 'middle' }} />}
                                                         {key.replace(/_/g, ' ')}
                                                     </td>
                                                     <td>{value}</td>
@@ -376,7 +390,7 @@ export default function ReportDetail() {
                         {parsed.flaggedItems?.length > 0 && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">⚠️</span>
+                                    <TriangleAlert size={20} className="rd-section-icon-svg" />
                                     Flagged Items
                                 </div>
                                 <div className="rd-flagged-list">
@@ -391,7 +405,7 @@ export default function ReportDetail() {
                         {parsed.followUp && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">📅</span>
+                                    <CalendarCheck size={20} className="rd-section-icon-svg" />
                                     Follow-Up Plan
                                 </div>
                                 <p className="rd-summary-text">{parsed.followUp}</p>
@@ -401,24 +415,24 @@ export default function ReportDetail() {
                         {/* ── ClinicalBERT Entities ── */}
                         <div className="rd-section rd-full-width">
                             <div className="rd-section-title">
-                                <span className="rd-section-icon">🧬</span>
+                                <Dna size={20} className="rd-section-icon-svg" />
                                 ClinicalBERT Entity Extraction
                             </div>
                             <p style={{ fontSize: '0.85rem', color: 'var(--pd-text-muted)', marginBottom: '1.5rem' }}>
                                 ClinicalBERT extracts and structures clinical information from medical documents.
                             </p>
                             <div className="rd-entity-grid">
-                                <EntityCard type="symptoms" icon="🔴" label="Symptoms" items={entities.symptoms || []} />
-                                <EntityCard type="conditions" icon="🟠" label="Conditions" items={entities.conditions || []} />
-                                <EntityCard type="medications" icon="🟢" label="Medications" items={entities.medications || []} />
-                                <EntityCard type="tests" icon="🔵" label="Tests & Labs" items={entities.tests || []} />
+                                <EntityCard type="symptoms" icon={<Thermometer size={16} />} label="Symptoms" items={entities.symptoms || []} />
+                                <EntityCard type="conditions" icon={<Heart size={16} />} label="Conditions" items={entities.conditions || []} />
+                                <EntityCard type="medications" icon={<Pill size={16} />} label="Medications" items={entities.medications || []} />
+                                <EntityCard type="tests" icon={<FlaskConical size={16} />} label="Tests & Labs" items={entities.tests || []} />
                             </div>
                         </div>
 
                         {/* ── Document Classification ── */}
                         <div className="rd-section rd-full-width">
                             <div className="rd-section-title">
-                                <span className="rd-section-icon">🏷️</span>
+                                <Tag size={20} className="rd-section-icon-svg" />
                                 Document Classification
                             </div>
                             <div className="rd-class-grid">
@@ -453,7 +467,7 @@ export default function ReportDetail() {
                         {report.doctorNotes && (
                             <div className="rd-section rd-full-width">
                                 <div className="rd-section-title">
-                                    <span className="rd-section-icon">👨‍⚕️</span>
+                                    <UserPen size={20} className="rd-section-icon-svg" />
                                     Doctor Notes
                                 </div>
                                 <p className="rd-summary-text">{report.doctorNotes}</p>
@@ -467,7 +481,7 @@ export default function ReportDetail() {
 
                         {/* ── Disclaimer ── */}
                         <div className="rd-disclaimer rd-full-width">
-                            <span className="rd-disclaimer-icon">ℹ️</span>
+                            <Info size={20} className="rd-disclaimer-icon-svg" />
                             <div>
                                 <strong>Important:</strong> This analysis is generated by automated AI tools (ClinicalBERT
                                 and LLM). It is a decision-support summary only — not a medical diagnosis. All clinical

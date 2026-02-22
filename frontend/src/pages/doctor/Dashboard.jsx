@@ -3,6 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import RiskBadge from '../../components/RiskBadge';
 import { doctorService } from '../../api/services';
+import {
+    BellRing,
+    Users,
+    AlertCircle,
+    ClipboardList,
+    AlertTriangle,
+    Activity,
+    Heart,
+    Thermometer,
+    Droplet,
+    Wind,
+    MoveRight,
+    CheckCircle2
+} from 'lucide-react';
 
 export default function DoctorDashboard() {
     const navigate = useNavigate();
@@ -39,16 +53,16 @@ export default function DoctorDashboard() {
                     <div className="topbar-title">Doctor Dashboard</div>
                     <div className="topbar-actions">
                         {alerts.length > 0 && (
-                            <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '8px', padding: '0.4rem 0.85rem', fontSize: '0.8rem', color: '#fca5a5', fontWeight: 700, cursor: 'pointer' }}
+                            <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '8px', padding: '0.4rem 0.85rem', fontSize: '0.8rem', color: '#fca5a5', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                                 onClick={() => setActiveTab('alerts')}>
-                                🚨 {alerts.length} Alert{alerts.length > 1 ? 's' : ''}
+                                <BellRing size={14} className="rd-spin" /> {alerts.length} Alert{alerts.length > 1 ? 's' : ''}
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="page-body">
-                    {error && <div className="alert alert-critical">{error}</div>}
+                    {error && <div className="alert alert-critical"><AlertCircle size={18} /> {error}</div>}
 
                     {/* Stats */}
                     <div className="stats-grid">
@@ -56,30 +70,35 @@ export default function DoctorDashboard() {
                             <div className="stat-label">Total Patients</div>
                             <div className="stat-value">{queue.length}</div>
                             <div className="stat-sub">In system</div>
+                            <Users size={20} style={{ position: 'absolute', right: '1rem', top: '1rem', opacity: 0.2 }} />
                         </div>
                         <div className="stat-card" style={{ borderColor: critical.length > 0 ? 'rgba(239,68,68,0.4)' : 'var(--border-light)' }}>
                             <div className="stat-label">Critical</div>
                             <div className="stat-value" style={{ background: 'linear-gradient(135deg, #fca5a5, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{critical.length}</div>
                             <div className="stat-sub">Urgent attention</div>
+                            <AlertCircle size={20} style={{ position: 'absolute', right: '1rem', top: '1rem', opacity: 0.2, color: '#ef4444' }} />
                         </div>
                         <div className="stat-card">
                             <div className="stat-label">High Priority</div>
                             <div className="stat-value" style={{ background: 'linear-gradient(135deg, #fdba74, #ea580c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{high.length}</div>
+                            <AlertTriangle size={20} style={{ position: 'absolute', right: '1rem', top: '1rem', opacity: 0.2, color: '#f97316' }} />
                         </div>
                         <div className="stat-card">
                             <div className="stat-label">Moderate / Stable</div>
                             <div className="stat-value">{moderate.length + stable.length}</div>
                             <div className="stat-sub">Lower priority</div>
+                            <Activity size={20} style={{ position: 'absolute', right: '1rem', top: '1rem', opacity: 0.2 }} />
                         </div>
                     </div>
 
                     {/* Tabs */}
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                        {['queue', 'alerts'].map(tab => (
-                            <button key={tab} className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-outline'} btn-sm`} onClick={() => setActiveTab(tab)}>
-                                {tab === 'queue' ? '📋 Priority Queue' : `🚨 High-Risk Alerts (${alerts.length})`}
-                            </button>
-                        ))}
+                        <button className={`btn ${activeTab === 'queue' ? 'btn-primary' : 'btn-outline'} btn-sm`} onClick={() => setActiveTab('queue')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <ClipboardList size={16} /> Priority Queue
+                        </button>
+                        <button className={`btn ${activeTab === 'alerts' ? 'btn-primary' : 'btn-outline'} btn-sm`} onClick={() => setActiveTab('alerts')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <BellRing size={16} /> High-Risk Alerts ({alerts.length})
+                        </button>
                     </div>
 
                     {loading ? <div className="spinner" /> : (
@@ -94,13 +113,15 @@ export default function DoctorDashboard() {
 
                                     {/* Priority groups */}
                                     {[
-                                        { label: '🔴 Critical', group: critical, color: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.3)' },
-                                        { label: '🟠 High Priority', group: high, color: 'rgba(249,115,22,0.06)', border: 'rgba(249,115,22,0.3)' },
-                                        { label: '🟡 Moderate', group: moderate, color: 'rgba(234,179,8,0.05)', border: 'var(--border-light)' },
-                                        { label: '🟢 Stable', group: stable, color: 'transparent', border: 'var(--border-light)' },
-                                    ].filter(g => g.group.length > 0).map(({ label, group, color, border }) => (
+                                        { label: 'Critical', group: critical, color: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.3)', icon: <AlertCircle size={18} color="#ef4444" /> },
+                                        { label: 'High Priority', group: high, color: 'rgba(249,115,22,0.06)', border: 'rgba(249,115,22,0.3)', icon: <AlertTriangle size={18} color="#f97316" /> },
+                                        { label: 'Moderate', group: moderate, color: 'rgba(234,179,8,0.05)', border: 'var(--border-light)', icon: <Activity size={18} color="#eab308" /> },
+                                        { label: 'Stable', group: stable, color: 'transparent', border: 'var(--border-light)', icon: <CheckCircle2 size={18} color="#22c55e" /> },
+                                    ].filter(g => g.group.length > 0).map(({ label, group, color, border, icon }) => (
                                         <div key={label} style={{ marginBottom: '1.75rem' }}>
-                                            <h2 className="section-heading">{label}</h2>
+                                            <h2 className="section-heading" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                {icon} {label}
+                                            </h2>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
                                                 {group.map(patient => (
                                                     <PatientCard key={patient._id} patient={patient} color={color} border={border} onClick={() => navigate(`/doctor/patient/${patient._id}`)} />
@@ -114,7 +135,7 @@ export default function DoctorDashboard() {
                             {activeTab === 'alerts' && (
                                 <>
                                     {alerts.length === 0 ? (
-                                        <div className="alert alert-success">✅ No high-risk alerts at this time.</div>
+                                        <div className="alert alert-success"><CheckCircle2 size={18} /> No high-risk alerts at this time.</div>
                                     ) : (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                             {alerts.map(patient => (
@@ -122,12 +143,17 @@ export default function DoctorDashboard() {
                                                     style={{ borderColor: patient.triageStatus === 'critical' ? 'rgba(239,68,68,0.5)' : 'rgba(249,115,22,0.4)', cursor: 'pointer', background: patient.triageStatus === 'critical' ? 'rgba(239,68,68,0.06)' : 'var(--glass)' }}
                                                     onClick={() => navigate(`/doctor/patient/${patient._id}`)}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <div>
-                                                            <div style={{ fontWeight: 700 }}>
-                                                                {patient.triageStatus === 'critical' ? '🚨' : '⚠️'} {patient.user?.firstName} {patient.user?.lastName}
+                                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                            <div style={{ background: patient.triageStatus === 'critical' ? '#ef4444' : '#f97316', color: '#fff', width: 40, height: 40, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                {patient.triageStatus === 'critical' ? <AlertCircle size={20} /> : <AlertTriangle size={20} />}
                                                             </div>
-                                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{patient.user?.email}</div>
-                                                            {patient.lastTriageAt && <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '0.1rem' }}>Triaged: {new Date(patient.lastTriageAt).toLocaleDateString()}</div>}
+                                                            <div>
+                                                                <div style={{ fontWeight: 700 }}>
+                                                                    {patient.user?.firstName} {patient.user?.lastName}
+                                                                </div>
+                                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{patient.user?.email}</div>
+                                                                {patient.lastTriageAt && <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '0.1rem' }}>Triaged: {new Date(patient.lastTriageAt).toLocaleDateString()}</div>}
+                                                            </div>
                                                         </div>
                                                         <RiskBadge priority={patient.triageStatus} size="lg" />
                                                     </div>
@@ -162,22 +188,38 @@ function PatientCard({ patient, color, border, onClick }) {
             </div>
 
             {v && (
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.75rem' }}>
-                    {v.heartRate && <span style={{ color: 'var(--text-muted)' }}>❤️ {v.heartRate} bpm</span>}
-                    {v.oxygenSaturation && <span style={{ color: 'var(--text-muted)' }}>🫁 SpO₂ {v.oxygenSaturation}%</span>}
-                    {v.bloodPressureSystolic && <span style={{ color: 'var(--text-muted)' }}>💉 {v.bloodPressureSystolic}/{v.bloodPressureDiastolic}</span>}
-                    {v.temperature && <span style={{ color: 'var(--text-muted)' }}>🌡️ {v.temperature}°C</span>}
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.75rem' }}>
+                    {v.heartRate && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
+                            <Heart size={14} color="#ef4444" /> {v.heartRate} bpm
+                        </div>
+                    )}
+                    {v.oxygenSaturation && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
+                            <Wind size={14} color="#3b82f6" /> SpO₂ {v.oxygenSaturation}%
+                        </div>
+                    )}
+                    {v.bloodPressureSystolic && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
+                            <Droplet size={14} color="#94a3b8" /> {v.bloodPressureSystolic}/{v.bloodPressureDiastolic}
+                        </div>
+                    )}
+                    {v.temperature && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
+                            <Thermometer size={14} color="#f97316" /> {v.temperature}°C
+                        </div>
+                    )}
                 </div>
             )}
 
             {patient.lastTriageAt && (
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>
-                    Last assessed: {new Date(patient.lastTriageAt).toLocaleDateString()}
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <ClipboardList size={12} /> Last assessed: {new Date(patient.lastTriageAt).toLocaleDateString()}
                 </div>
             )}
 
-            <div style={{ marginTop: '0.75rem', textAlign: 'right', fontSize: '0.8rem', color: 'var(--primary-light)', fontWeight: 600 }}>
-                View Details →
+            <div style={{ marginTop: '1rem', textAlign: 'right', fontSize: '0.8rem', color: 'var(--primary-light)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                View Patient <MoveRight size={14} />
             </div>
         </div>
     );

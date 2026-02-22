@@ -1,5 +1,79 @@
 /* ─── Report Detail Page ─────────────────────────────────── */
 
+/* SVG Icon Styling */
+.rd-section-icon-svg {
+    flex-shrink: 0;
+    color: var(--pd-accent);
+}
+
+.rd-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rd-icon-patient {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.rd-icon-doctor {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.rd-pending-icon-svg {
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+/* Spin animation for loading icons */
+@keyframes rd-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rd-spin {
+    animation: rd-spin 1s linear infinite;
+}
+
+/* Re-analyse Button */
+.rd-reparse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--pd-accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.rd-reparse-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.rd-reparse-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.rd-disclaimer-icon-svg {
+    flex-shrink: 0;
+    color: #3b82f6;
+}
+
 /* Info Cards (Patient/Doctor) */
 .rd-info-grid {
     display: grid;

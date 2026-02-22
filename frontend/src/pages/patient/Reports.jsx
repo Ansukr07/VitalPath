@@ -3,6 +3,19 @@ import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { reportService } from '../../api/services';
+import {
+    UploadCloud,
+    Loader2,
+    FileText,
+    TestTubes,
+    Bone,
+    Trash2,
+    AlertCircle,
+    CheckCircle2,
+    FolderOpen,
+    Dna,
+    MoveRight
+} from 'lucide-react';
 import './PatientDashboard.css';
 
 const REPORT_TYPES = ['blood_test', 'xray', 'mri', 'ct_scan', 'ecg', 'urine_test', 'biopsy', 'prescription', 'discharge_summary', 'other'];
@@ -90,15 +103,17 @@ export default function Reports() {
                                 position: 'relative'
                             }}>
                                 <input {...getInputProps()} />
-                                <div style={{ fontSize: '3rem', marginBottom: '1rem', filter: uploading ? 'grayscale(1)' : 'none' }}>{uploading ? '⏳' : '📥'}</div>
+                                <div style={{ display: 'flex', justifyContent: 'center', color: isDragActive ? 'var(--pd-accent)' : '#94a3b8', marginBottom: '1rem' }}>
+                                    {uploading ? <Loader2 size={48} className="rd-spin" /> : <UploadCloud size={48} />}
+                                </div>
                                 <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: isDragActive ? 'var(--pd-accent)' : 'inherit' }}>
                                     {uploading ? 'Processing...' : isDragActive ? 'Drop File' : 'Drop file or click'}
                                 </h3>
                                 <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>PDF or Images up to 10MB</p>
                             </div>
 
-                            {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '0.75rem 1rem', borderRadius: '12px', marginTop: '1.5rem', border: '1px solid #fecaca', fontSize: '0.85rem' }}>⚠️ {error}</div>}
-                            {success && <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem 1rem', borderRadius: '12px', marginTop: '1.5rem', border: '#bbf7d0', fontSize: '0.85rem' }}>✅ {success}</div>}
+                            {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '0.75rem 1rem', borderRadius: '12px', marginTop: '1.5rem', border: '1px solid #fecaca', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={16} /> {error}</div>}
+                            {success && <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem 1rem', borderRadius: '12px', marginTop: '1.5rem', border: '1px solid #bbf7d0', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle2 size={16} /> {success}</div>}
                         </div>
                     </div>
 
@@ -115,7 +130,9 @@ export default function Reports() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {reports.length === 0 && (
                                     <div className="pd-section-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                                        <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>📂</div>
+                                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', opacity: 0.3, color: '#94a3b8' }}>
+                                            <FolderOpen size={48} />
+                                        </div>
                                         <p style={{ color: 'var(--pd-text-muted)', fontWeight: 600 }}>No documents found in your vault.</p>
                                     </div>
                                 )}
@@ -127,8 +144,8 @@ export default function Reports() {
                                     >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-                                                <div style={{ width: 48, height: 48, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-                                                    {r.reportType === 'blood_test' ? '🧪' : r.reportType === 'xray' ? '🩻' : '📄'}
+                                                <div style={{ width: 48, height: 48, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                                                    {r.reportType === 'blood_test' ? <TestTubes size={24} /> : r.reportType === 'xray' ? <Bone size={24} /> : <FileText size={24} />}
                                                 </div>
                                                 <div>
                                                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{r.originalName}</h3>
@@ -147,7 +164,9 @@ export default function Reports() {
                                                 }}>
                                                     {r.parsedData?.parseStatus === 'done' ? 'PARSED' : 'PENDING'}
                                                 </span>
-                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(r._id); }} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem' }}>🗑️</button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(r._id); }} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </div>
 
@@ -163,13 +182,16 @@ export default function Reports() {
                                                                 <h4 style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: '#ef4444', marginBottom: '0.75rem' }}>Flagged Items</h4>
                                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                                                     {r.parsedData.flaggedItems.map((item, i) => (
-                                                                        <span key={i} style={{ background: '#fee2e2', color: '#991b1b', padding: '0.35rem 0.75rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600 }}>{item}</span>
+                                                                        <span key={i} style={{ background: '#fee2e2', color: '#991b1b', padding: '0.35rem 0.75rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                            <AlertCircle size={12} /> {item}
+                                                                        </span>
                                                                     ))}
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', border: '1px solid #f1f5f9', marginBottom: '1.5rem' }}>
-                                                            Note: This summary is generated via automated analysis. Please review the full document with your physician for clinical interpretation.
+                                                        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', border: '1px solid #f1f5f9', marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+                                                            <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                                            <div>Note: This summary is generated via automated analysis. Please review the full document with your physician for clinical interpretation.</div>
                                                         </div>
 
                                                         <button
@@ -177,17 +199,17 @@ export default function Reports() {
                                                             style={{
                                                                 background: 'var(--pd-accent)', color: '#fff', border: 'none', borderRadius: '12px',
                                                                 padding: '0.65rem 1.25rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
-                                                                transition: 'all 0.2s', width: '100%'
+                                                                transition: 'all 0.2s', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
                                                             }}
                                                         >
-                                                            View Full Analysis →
+                                                            View Full Analysis <MoveRight size={16} />
                                                         </button>
 
                                                         {/* ClinicalBERT Structured Entities */}
                                                         {r.clinicalEntities && (
                                                             <div style={{ marginTop: '1.5rem', background: 'rgba(59, 130, 246, 0.03)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
                                                                 <h4 style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', color: '#1e40af', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                    <span style={{ fontSize: '1.2rem' }}>🧬</span> ClinicalBERT Extraction
+                                                                    <Dna size={16} /> ClinicalBERT Extraction
                                                                 </h4>
 
                                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

@@ -3,6 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { patientService, reportService, reminderService } from '../../api/services';
 import { useAuth } from '../../context/AuthContext';
+import {
+    Bell,
+    Settings,
+    CheckCircle2,
+    PenLine,
+    Stethoscope,
+    Pill,
+    Hospital,
+    FileText,
+    ChevronRight,
+    TrendingUp,
+    TrendingDown,
+    Activity,
+    Files,
+    AlertCircle,
+    Send
+} from 'lucide-react';
 import './PatientDashboard.css';
 
 export default function PatientDashboard() {
@@ -113,6 +130,8 @@ export default function PatientDashboard() {
         </div>
     );
 
+    const isTrendUp = calculateTrend().startsWith('+');
+
     return (
         <div className="pd-wrapper">
             <Sidebar />
@@ -120,12 +139,12 @@ export default function PatientDashboard() {
                 {/* ── Header ── */}
                 <header className="pd-header">
                     <h1 className="pd-greeting">
-                        Hey, {user.firstName || 'User'}! Glad to have you back 👐
+                        Hey, {user.firstName || 'User'}! Glad to have you back
                     </h1>
                     <div className="pd-top-actions">
-                        {error && <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>⚠️ {error}</span>}
-                        <div className="pd-icon-btn">🔔</div>
-                        <div className="pd-icon-btn">⚙️</div>
+                        {error && <span style={{ color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertCircle size={14} /> {error}</span>}
+                        <div className="pd-icon-btn"><Bell size={18} /></div>
+                        <div className="pd-icon-btn"><Settings size={18} /></div>
                         <div className="pd-icon-btn" style={{ padding: 0, overflow: 'hidden' }}>
                             <div className="user-avatar" style={{ width: '100%', height: '100%', borderRadius: 0 }}>
                                 {user.firstName?.[0]}{user.lastName?.[0]}
@@ -144,7 +163,8 @@ export default function PatientDashboard() {
                                 <span className="pd-card-title">Progress Tracking</span>
                                 <div className="pd-stat-value-row">
                                     <span className="pd-stat-number">{completedTriageCount}</span>
-                                    <span className={`pd-stat-trend ${calculateTrend().startsWith('+') ? 'pd-trend-up' : 'pd-trend-down'}`}>
+                                    <span className={`pd-stat-trend ${isTrendUp ? 'pd-trend-up' : 'pd-trend-down'}`}>
+                                        {isTrendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                                         {calculateTrend()}
                                     </span>
                                 </div>
@@ -162,10 +182,10 @@ export default function PatientDashboard() {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                                        <span style={{ color: '#3b82f6' }}>✅</span> Regular tracking maintained
+                                        <CheckCircle2 size={14} style={{ color: '#3b82f6' }} /> Regular tracking maintained
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                                        <span style={{ color: '#3b82f6' }}>✅</span> Patterns identified
+                                        <CheckCircle2 size={14} style={{ color: '#3b82f6' }} /> Patterns identified
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +194,7 @@ export default function PatientDashboard() {
                                 <span className="pd-card-title">Medical Documents</span>
                                 <div className="pd-stat-value-row">
                                     <span className="pd-stat-number">{stats.reports.length}</span>
-                                    <span className="pd-stat-trend pd-trend-up">Files</span>
+                                    <span className="pd-stat-trend pd-trend-up"><Files size={12} /> Files</span>
                                 </div>
                                 <p className="pd-stat-desc">Securely stored in your vault</p>
                                 <div className="pd-progress-track">
@@ -259,7 +279,7 @@ export default function PatientDashboard() {
                                             background: 'rgba(255,255,255,0.05)',
                                             border: '1px solid rgba(255,255,255,0.1)',
                                             borderRadius: '25px',
-                                            padding: '0.75rem 3rem 0.75rem 1.25rem',
+                                            padding: '0.75rem 3.25rem 0.75rem 1.25rem',
                                             color: '#fff',
                                             outline: 'none',
                                             fontSize: '0.9rem'
@@ -283,8 +303,8 @@ export default function PatientDashboard() {
                                             boxShadow: '0 -10px 25px rgba(0,0,0,0.3)',
                                             zIndex: 10
                                         }}>
-                                            <div style={{ fontSize: '0.7rem', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
-                                                ClinicalBERT Insights
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+                                                <Activity size={12} /> ClinicalBERT Insights
                                             </div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                                 {liveInsights.symptoms.map((s, i) => (
@@ -322,7 +342,7 @@ export default function PatientDashboard() {
                                             boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
                                         }}
                                     >
-                                        <span style={{ transform: 'rotate(-90deg)', display: 'inline-block' }}>▼</span>
+                                        <ChevronRight size={18} />
                                     </button>
                                 </div>
                             </div>
@@ -338,7 +358,9 @@ export default function PatientDashboard() {
                             <div className="pd-exercise-list">
                                 {stats.symptoms.slice(0, 2).map((s, idx) => (
                                     <div key={s._id} className="pd-exercise-item">
-                                        <div className="pd-exercise-icon">{idx === 0 ? '📝' : '🩺'}</div>
+                                        <div className="pd-exercise-icon">
+                                            {idx === 0 ? <PenLine size={18} /> : <Stethoscope size={18} />}
+                                        </div>
                                         <div className="pd-exercise-name">{s.symptoms.map(sym => sym.name).join(', ')}</div>
                                         <div className="pd-exercise-percent">{new Date(s.createdAt).toLocaleDateString()}</div>
                                         <div className="pd-progress-track" style={{ width: '100px', margin: 0 }}>
@@ -360,7 +382,10 @@ export default function PatientDashboard() {
 
                         {/* Upcoming Reminders Section */}
                         <div className="pd-card pd-calendar-widget">
-                            <span className="pd-card-title">Upcoming Tasks</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <span className="pd-card-title">Upcoming Tasks</span>
+                                <AlertCircle size={14} style={{ color: '#94a3b8' }} />
+                            </div>
                             <div className="pd-days-row" style={{ marginTop: '0.5rem' }}>
                                 {[...Array(7)].map((_, i) => {
                                     const d = new Date();
@@ -377,8 +402,8 @@ export default function PatientDashboard() {
                             <div className="pd-appointments-list" style={{ marginTop: '1rem' }}>
                                 {stats.reminders.slice(0, 3).map((r) => (
                                     <div key={r._id} className="pd-appointment">
-                                        <div className="pd-avatar" style={{ background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
-                                            {r.type === 'medication' ? '💊' : '🏥'}
+                                        <div className="pd-avatar" style={{ background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--pd-accent)' }}>
+                                            {r.type === 'medication' ? <Pill size={18} /> : <Hospital size={18} />}
                                         </div>
                                         <div className="pd-app-info">
                                             <div className="pd-app-name">{r.title}</div>
@@ -395,8 +420,8 @@ export default function PatientDashboard() {
                                 )}
                             </div>
 
-                            <button className="pd-urgent-btn" style={{ background: '#1e293b', width: '100%', marginTop: '1rem' }} onClick={() => navigate('/patient/reminders')}>
-                                Manage Reminders
+                            <button className="pd-urgent-btn" style={{ background: '#1e293b', width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => navigate('/patient/reminders')}>
+                                <Activity size={16} /> Manage Reminders
                             </button>
                         </div>
 
@@ -410,11 +435,13 @@ export default function PatientDashboard() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 {stats.reports.slice(0, 3).map((rep) => (
                                     <div key={rep._id} className="pd-session-item" onClick={() => navigate(`/patient/reports/${rep._id}`)}>
-                                        <div className="pd-play-btn">📄</div>
+                                        <div className="pd-play-btn" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                                            <FileText size={16} />
+                                        </div>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{rep.originalName}</div>
                                             <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                                {rep.reportType.replace('_', ' ')} • {new Date(rep.reportDate || rep.createdAt).toLocaleDateString()}
+                                                {rep.reportType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} • {new Date(rep.reportDate || rep.createdAt).toLocaleDateString()}
                                             </div>
                                         </div>
                                     </div>
@@ -423,8 +450,8 @@ export default function PatientDashboard() {
                                     <p style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>No reports uploaded yet.</p>
                                 )}
                             </div>
-                            <button className="pd-urgent-btn" style={{ background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b', width: '100%', marginTop: '1rem' }} onClick={() => navigate('/patient/reports')}>
-                                View all reports
+                            <button className="pd-urgent-btn" style={{ background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b', width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => navigate('/patient/reports')}>
+                                <Files size={16} /> View all reports
                             </button>
                         </div>
 

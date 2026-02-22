@@ -84,7 +84,7 @@ SYMPTOM_KEYWORDS = [
 
 MEDICATION_KEYWORDS = [
     # Common drug suffixes (broad catch)
-    r"\b\w+(?:cillin|mycin|floxacin|prazole|sartan|olol|pril|statin|azole|mab|nib|ide|ine|ate|one)\b",
+    r"\b(?!(?:Date|Phone|Time|Note)\b)\w+(?:cillin|mycin|floxacin|prazole|sartan|olol|pril|statin|azole|mab|nib|ide|ine|ate|one)\b",
     # Specific common drugs
     r"\bmetformin\b", r"\binsulin\b", r"\baspirin\b", r"\bibuprofen\b",
     r"\bparacetamol\b", r"\bacetaminophen\b", r"\blisinopril\b", r"\batorvastatin\b",
@@ -249,7 +249,7 @@ DOC_TYPE_RULES = {
     "consultation": [
         r"\bconsultation\b", r"\breferral\b", r"\bclinical note\b",
         r"\bhistory of present illness\b", r"\bhpi\b",
-        r"\bchief complaint\b", r"\breview of systems\b",
+        r"\bchief complaints?\b", r"\breview of systems\b",
         r"\bphysical examination\b", r"\bplan:\b", r"\bassessment:\b",
     ],
 }
@@ -258,8 +258,11 @@ CONSULTATION_TYPE_RULES = {
     "emergency": [r"\bemergency\b", r"\burgent care\b", r"\ber visit\b", r"\bacute\b"],
     "follow_up": [r"\bfollow.?up\b", r"\bfollow up\b", r"\breviewed\b", r"\bprogress note\b"],
     "routine": [r"\broutine\b", r"\bcheck.?up\b", r"\bannual\b", r"\bscreening\b"],
-    "specialist": [r"\bspecialist\b", r"\bcardiology\b", r"\bneurology\b", r"\boncology\b",
-                   r"\bgastroenterology\b", r"\bendocrinology\b", r"\borthopedic\b"],
+    "specialist": [
+        r"\bspecialist\b", r"\bcardiology\b", r"\bneurology\b", r"\boncology\b",
+        r"\bgastroenterology\b", r"\bendocrinology\b", r"\borthopedic\b",
+        r"\burology\b", r"\bandrology\b", r"\burologist\b"
+    ],
 }
 
 

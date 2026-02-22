@@ -1,9 +1,32 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { reminderService } from '../../api/services';
+import {
+    Calendar,
+    TestTubes,
+    RefreshCw,
+    Pill,
+    Leaf,
+    Bell,
+    Plus,
+    X,
+    AlertCircle,
+    Check,
+    Trash2,
+    MapPin,
+    CalendarOff,
+    CheckCircle2
+} from 'lucide-react';
 import './PatientDashboard.css';
 
-const TYPE_ICONS = { appointment: '📅', test: '🧪', follow_up: '🔄', medication: '💊', lifestyle: '🌿', other: '🔔' };
+const TYPE_ICONS = {
+    appointment: Calendar,
+    test: TestTubes,
+    follow_up: RefreshCw,
+    medication: Pill,
+    lifestyle: Leaf,
+    other: Bell
+};
 
 export default function Reminders() {
     const [reminders, setReminders] = useState([]);
@@ -65,12 +88,12 @@ export default function Reminders() {
                         <h1 className="pd-page-title">Personal Reminders</h1>
                         <p className="pd-page-desc">Stay on track with your medical appointments, tests, and health routines.</p>
                     </div>
-                    <button className="pd-urgent-btn" style={{ margin: 0, width: 'auto', background: showForm ? '#1e293b' : 'var(--pd-accent)', color: '#fff' }} onClick={() => setShowForm(!showForm)}>
-                        {showForm ? '✕ Close' : '+ New Reminder'}
+                    <button className="pd-urgent-btn" style={{ margin: 0, width: 'auto', background: showForm ? '#1e293b' : 'var(--pd-accent)', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setShowForm(!showForm)}>
+                        {showForm ? <><X size={18} /> Close</> : <><Plus size={18} /> New Reminder</>}
                     </button>
                 </header>
 
-                {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid #fecaca', fontWeight: 600 }}>⚠️ {error}</div>}
+                {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid #fecaca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={20} /> {error}</div>}
 
                 {showForm && (
                     <div className="pd-section-card fade-in" style={{ marginBottom: '2.5rem' }}>
@@ -100,24 +123,24 @@ export default function Reminders() {
                                 <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Additional Notes</label>
                                 <textarea className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', textAlign: 'left', width: '100%', borderRadius: '12px', height: '100px', padding: '1rem', resize: 'none' }} placeholder="Important details like fasting, medications, etc." value={form.description} onChange={set('description')} />
                             </div>
-                            <button type="submit" className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: 'var(--pd-accent)' }} disabled={saving}>
-                                {saving ? 'Adding...' : 'Confirm Reminder'}
+                            <button type="submit" className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: 'var(--pd-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} disabled={saving}>
+                                {saving ? <><CheckCircle2 size={18} className="rd-spin" /> Adding...</> : <><CheckCircle2 size={18} /> Confirm Reminder</>}
                             </button>
                         </form>
                     </div>
                 )}
 
-                <div> {/* Removed maxWidth: '1000px' */}
+                <div>
                     {overdue.length > 0 && (
                         <div>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                ⚠️ Overdue <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 500 }}>({overdue.length})</span>
+                                <AlertCircle size={20} /> Overdue <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 500 }}>({overdue.length})</span>
                             </h2>
                             <ReminderList items={overdue} onDone={handleMarkDone} onDelete={handleDelete} status="overdue" />
                         </div>
                     )}
 
-                    <div>
+                    <div style={{ marginTop: overdue.length > 0 ? '3rem' : 0 }}>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem' }}>
                             {upcoming.length > 0 ? 'Upcoming Schedule' : 'No Upcoming Tasks'}
                         </h2>
@@ -125,7 +148,9 @@ export default function Reminders() {
                             <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner" /></div>
                         ) : upcoming.length === 0 ? (
                             <div className="pd-section-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                                <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>🗓️</div>
+                                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', opacity: 0.3, color: '#94a3b8' }}>
+                                    <CalendarOff size={48} />
+                                </div>
                                 <p style={{ color: 'var(--pd-text-muted)', fontWeight: 600 }}>You're all caught up! No upcoming reminders.</p>
                             </div>
                         ) : (
@@ -144,27 +169,38 @@ function ReminderList({ items, onDone, onDelete, status }) {
             {items.map((r) => {
                 const d = new Date(r.scheduledAt);
                 const isToday = d.toDateString() === new Date().toDateString();
+                const Icon = TYPE_ICONS[r.type] || Bell;
+
                 return (
                     <div key={r._id} className="pd-section-card" style={{ padding: '1.5rem', border: isToday ? '2px solid var(--pd-accent)' : '1px solid var(--pd-border)' }}>
                         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                            <div style={{ width: 56, height: 56, borderRadius: '16px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', flexShrink: 0 }}>
-                                {TYPE_ICONS[r.type] || '🔔'}
+                            <div style={{ width: 56, height: 56, borderRadius: '16px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? 'var(--pd-accent)' : '#64748b', flexShrink: 0 }}>
+                                <Icon size={28} />
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                     <div>
                                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{r.title}</h3>
-                                        <div style={{ fontSize: '0.85rem', color: status === 'overdue' ? '#ef4444' : isToday ? 'var(--pd-accent)' : '#64748b', fontWeight: 700 }}>
+                                        <div style={{ fontSize: '0.85rem', color: status === 'overdue' ? '#ef4444' : isToday ? 'var(--pd-accent)' : '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <Calendar size={14} />
                                             {isToday ? 'TODAY at ' : ''}
                                             {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} • {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => onDone(r._id)} style={{ border: '1px solid #e2e8f0', background: '#fff', padding: '0.5rem 1rem', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#f8fafc'} onMouseLeave={(e) => e.target.style.background = '#fff'}>✓ Done</button>
-                                        <button onClick={() => onDelete(r._id)} style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem' }}>🗑️</button>
+                                        <button onClick={() => onDone(r._id)} style={{ border: '1px solid #e2e8f0', background: '#fff', padding: '0.5rem 1rem', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }} onMouseEnter={(e) => e.target.style.background = '#f8fafc'} onMouseLeave={(e) => e.target.style.background = '#fff'}>
+                                            <Check size={16} /> Done
+                                        </button>
+                                        <button onClick={() => onDelete(r._id)} style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Trash2 size={20} />
+                                        </button>
                                     </div>
                                 </div>
-                                {r.doctorName && <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}><span>📍</span> {r.doctorName}</div>}
+                                {r.doctorName && (
+                                    <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                        <MapPin size={14} /> {r.doctorName}
+                                    </div>
+                                )}
                                 {r.description && <div style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.5, background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '4px solid #e2e8f0' }}>{r.description}</div>}
                             </div>
                         </div>

@@ -1,8 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
-import RiskBadge from '../../components/RiskBadge';
 import { patientService } from '../../api/services';
+import {
+    AlertCircle,
+    AlertTriangle,
+    CheckCircle2,
+    MoveLeft,
+    MoveRight,
+    Plus,
+    Trash2,
+    ShieldAlert,
+    Check,
+    Send,
+    Activity,
+    Thermometer,
+    Heart,
+    Wind,
+    Droplet,
+    Stethoscope
+} from 'lucide-react';
 import './PatientDashboard.css';
 
 const COMMON_SYMPTOMS = [
@@ -55,6 +72,8 @@ export default function SymptomForm() {
 
     if (result) {
         const sc = { critical: '#ef4444', high: '#f97316', moderate: '#eab308', stable: '#22c55e' };
+        const ResultIcon = result.finalPriority === 'critical' ? AlertCircle : result.finalPriority === 'high' ? AlertTriangle : CheckCircle2;
+
         return (
             <div className="pd-wrapper">
                 <Sidebar />
@@ -66,8 +85,8 @@ export default function SymptomForm() {
 
                     <div className="pd-section-card">
                         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>
-                                {result.finalPriority === 'critical' ? '🚨' : result.finalPriority === 'high' ? '⚠️' : result.finalPriority === 'moderate' ? '🟡' : '✅'}
+                            <div style={{ color: sc[result.finalPriority], marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                                <ResultIcon size={80} strokeWidth={1.5} />
                             </div>
                             <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Assessment Complete</h2>
                             <div style={{ display: 'inline-block', padding: '0.5rem 1.5rem', borderRadius: '30px', background: `${sc[result.finalPriority]}20`, color: sc[result.finalPriority], fontWeight: 700, fontSize: '1rem', marginBottom: '1.5rem', border: `1px solid ${sc[result.finalPriority]}40` }}>
@@ -81,7 +100,9 @@ export default function SymptomForm() {
                         {/* Score bar */}
                         <div style={{ marginBottom: '2.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                                <span style={{ fontWeight: 600, color: 'var(--pd-text-muted)' }}>Stability Score</span>
+                                <span style={{ fontWeight: 600, color: 'var(--pd-text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <Activity size={16} /> Stability Score
+                                </span>
                                 <span style={{ color: sc[result.finalPriority], fontWeight: 800 }}>{result.finalScore}/100</span>
                             </div>
                             <div className="pd-progress-track" style={{ height: '16px' }}>
@@ -90,7 +111,9 @@ export default function SymptomForm() {
                         </div>
 
                         {/* Reasoning */}
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem' }}>Detailed Factors</h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Stethoscope size={20} /> Detailed Factors
+                        </h3>
                         <div style={{ display: 'grid', gap: '1rem', marginBottom: '2.5rem' }}>
                             {result.ruleEngine?.reasoning?.map((r, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.25rem 1.75rem' }}>
@@ -100,14 +123,19 @@ export default function SymptomForm() {
                             ))}
                         </div>
 
-                        <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '16px', padding: '1.5rem', marginBottom: '2.5rem', fontSize: '0.9rem', color: '#92400e', lineHeight: 1.6 }}>
-                            <strong>⚕️ Medical Disclaimer:</strong> This assessment is for informational support only and does not constitute a diagnosis. Always follow the guidance of your primary healthcare provider. In an emergency, contact local emergency services immediately.
+                        <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '16px', padding: '1.5rem', marginBottom: '2.5rem', fontSize: '0.9rem', color: '#92400e', lineHeight: 1.6, display: 'flex', gap: '1rem' }}>
+                            <ShieldAlert size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div>
+                                <strong>Medical Disclaimer:</strong> This assessment is for informational support only and does not constitute a diagnosis. Always follow the guidance of your primary healthcare provider. In an emergency, contact local emergency services immediately.
+                            </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button className="pd-urgent-btn" style={{ flex: 1, margin: 0, background: '#1e293b' }} onClick={() => navigate('/patient')}>Back to Dashboard</button>
-                            <button className="pd-urgent-btn" style={{ flex: 1, margin: 0, background: 'transparent', border: '1px solid #cbd5e1', color: '#1e293b' }} onClick={() => { setResult(null); setStep(0); setSymptoms([emptySymptom()]); }}>
-                                Report New Symptom
+                            <button className="pd-urgent-btn" style={{ flex: 1, margin: 0, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => navigate('/patient')}>
+                                <MoveLeft size={18} /> Back to Dashboard
+                            </button>
+                            <button className="pd-urgent-btn" style={{ flex: 1, margin: 0, background: 'transparent', border: '1px solid #cbd5e1', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => { setResult(null); setStep(0); setSymptoms([emptySymptom()]); }}>
+                                <Plus size={18} /> Report New Symptom
                             </button>
                         </div>
                     </div>
@@ -139,7 +167,7 @@ export default function SymptomForm() {
                                         boxShadow: i === step ? '0 8px 15px rgba(59, 130, 246, 0.3)' : 'none',
                                         transition: 'all 0.4s'
                                     }}>
-                                        {i < step ? '✓' : i + 1}
+                                        {i < step ? <Check size={20} strokeWidth={3} /> : i + 1}
                                     </div>
                                     <span style={{ position: 'absolute', top: 54, fontSize: '0.85rem', fontWeight: 700, color: i === step ? 'var(--pd-text)' : '#94a3b8', whiteSpace: 'nowrap' }}>{s}</span>
                                 </div>
@@ -151,12 +179,16 @@ export default function SymptomForm() {
                     </div>
 
                     <div style={{ marginTop: '4rem' }}>
-                        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid #fecaca', fontWeight: 600 }}>⚠️ {error}</div>}
+                        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid #fecaca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertCircle size={20} /> {error}
+                        </div>}
 
                         {/* STEP 0: Symptoms */}
                         {step === 0 && (
                             <div className="fade-in">
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Current Symptoms</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Stethoscope size={24} color="var(--pd-accent)" /> Current Symptoms
+                                </h2>
 
                                 <div style={{ marginBottom: '2rem' }}>
                                     <p style={{ fontSize: '0.9rem', color: 'var(--pd-text-muted)', marginBottom: '1rem', fontWeight: 600 }}>Quick Selection</p>
@@ -175,7 +207,9 @@ export default function SymptomForm() {
                                     <div key={idx} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '2rem', marginBottom: '1.5rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                             <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Symptom #{idx + 1}</h3>
-                                            {symptoms.length > 1 && <button type="button" onClick={() => removeSymptom(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>}
+                                            {symptoms.length > 1 && <button type="button" onClick={() => removeSymptom(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                                <Trash2 size={20} />
+                                            </button>}
                                         </div>
 
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -199,10 +233,14 @@ export default function SymptomForm() {
                                     </div>
                                 ))}
 
-                                <button type="button" style={{ background: 'transparent', border: '2px dashed #e2e8f0', color: '#64748b', padding: '1rem', width: '100%', borderRadius: '16px', fontWeight: 600, cursor: 'pointer' }} onClick={addSymptom}>+ Add another symptom</button>
+                                <button type="button" style={{ background: 'transparent', border: '2px dashed #e2e8f0', color: '#64748b', padding: '1rem', width: '100%', borderRadius: '16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={addSymptom}>
+                                    <Plus size={20} /> Add another symptom
+                                </button>
 
                                 <div style={{ marginTop: '2.5rem' }}>
-                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: '#1e293b' }} onClick={() => setStep(1)}>Next: Vitals →</button>
+                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem' }} onClick={() => setStep(1)}>
+                                        Next: Vitals <MoveRight size={18} />
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -210,28 +248,36 @@ export default function SymptomForm() {
                         {/* STEP 1: Vitals */}
                         {step === 1 && (
                             <div className="fade-in">
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Current Vitals</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Activity size={24} color="var(--pd-accent)" /> Current Vitals
+                                </h2>
                                 <p style={{ color: 'var(--pd-text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>Providing vitals improves the accuracy of our assessment engine.</p>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                     {[
-                                        { key: 'bloodPressureSystolic', label: 'Systolic BP', unit: 'mmHg' },
-                                        { key: 'bloodPressureDiastolic', label: 'Diastolic BP', unit: 'mmHg' },
-                                        { key: 'heartRate', label: 'Heart Rate', unit: 'bpm' },
-                                        { key: 'temperature', label: 'Temperature', unit: '°C' },
-                                        { key: 'oxygenSaturation', label: 'SpO₂', unit: '%' },
-                                        { key: 'respiratoryRate', label: 'Resp. Rate', unit: '/min' },
-                                    ].map(({ key, label, unit }) => (
+                                        { key: 'bloodPressureSystolic', label: 'Systolic BP', unit: 'mmHg', icon: <Droplet size={16} color="#94a3b8" /> },
+                                        { key: 'bloodPressureDiastolic', label: 'Diastolic BP', unit: 'mmHg', icon: <Droplet size={16} color="#94a3b8" /> },
+                                        { key: 'heartRate', label: 'Heart Rate', unit: 'bpm', icon: <Heart size={16} color="#ef4444" /> },
+                                        { key: 'temperature', label: 'Temperature', unit: '°C', icon: <Thermometer size={16} color="#f97316" /> },
+                                        { key: 'oxygenSaturation', label: 'SpO₂', unit: '%', icon: <Wind size={16} color="#3b82f6" /> },
+                                        { key: 'respiratoryRate', label: 'Resp. Rate', unit: '/min', icon: <Activity size={16} color="#10b981" /> },
+                                    ].map(({ key, label, unit, icon }) => (
                                         <div key={key} className="form-group">
-                                            <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>{label} ({unit})</label>
+                                            <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                {icon} {label} ({unit})
+                                            </label>
                                             <input className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', textAlign: 'left', width: '100%', borderRadius: '12px' }} type="number" value={vitals[key]} onChange={setV(key)} />
                                         </div>
                                     ))}
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '3rem' }}>
-                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '150px', background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b' }} onClick={() => setStep(0)}>← Back</button>
-                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: '#1e293b' }} onClick={() => setStep(2)}>Next: Review →</button>
+                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '150px', background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => setStep(0)}>
+                                        <MoveLeft size={18} /> Back
+                                    </button>
+                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => setStep(2)}>
+                                        Next: Review <MoveRight size={18} />
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -239,10 +285,14 @@ export default function SymptomForm() {
                         {/* STEP 2: Review */}
                         {step === 2 && (
                             <div className="fade-in">
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem' }}>Confirm & Submit</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <CheckCircle2 size={24} color="var(--pd-accent)" /> Confirm & Submit
+                                </h2>
 
                                 <div style={{ background: '#f8fafc', borderRadius: '20px', padding: '2rem' }}>
-                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '1rem' }}>Symptoms</h3>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Stethoscope size={16} /> Symptoms
+                                    </h3>
                                     {symptoms.filter(s => s.name).map((s, idx) => (
                                         <div key={idx} style={{ padding: '0.75rem 0', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ fontWeight: 600 }}>{s.name}</span>
@@ -250,14 +300,18 @@ export default function SymptomForm() {
                                         </div>
                                     ))}
 
-                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', marginTop: '2rem', marginBottom: '1rem' }}>Disclaimers</h3>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', marginTop: '2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ShieldAlert size={16} /> Disclaimers
+                                    </h3>
                                     <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.6 }}>By submitting this report, you acknowledge that this is a decision support tool and not a medical diagnosis. Your data will be transmitted securely to your registered care provider.</p>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '3rem' }}>
-                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '150px', background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b' }} onClick={() => setStep(1)}>← Back</button>
-                                    <button className="pd-urgent-btn" style={{ margin: 0, flex: 1, background: '#1e293b' }} onClick={handleSubmit} disabled={loading}>
-                                        {loading ? 'Processing Assessment...' : '🚀 Submit Report'}
+                                    <button className="pd-urgent-btn" style={{ margin: 0, width: '150px', background: 'transparent', border: '1px solid #e2e8f0', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => setStep(1)}>
+                                        <MoveLeft size={18} /> Back
+                                    </button>
+                                    <button className="pd-urgent-btn" style={{ margin: 0, flex: 1, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem' }} onClick={handleSubmit} disabled={loading}>
+                                        {loading ? <><div className="rd-spin"><Activity size={18} /></div> Processing Assessment...</> : <><Send size={18} /> Submit Report</>}
                                     </button>
                                 </div>
                             </div>
