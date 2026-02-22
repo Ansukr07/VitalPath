@@ -4,16 +4,27 @@
    ══════════════════════════════════════════════════ */
 
 .auth-page-wrapper {
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
     background: #000;
     color: #fff;
     font-family: 'Inter', sans-serif;
     display: flex;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.auth-page-wrapper::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 .auth-container {
     width: 100%;
     max-width: 1440px;
+    height: 100%;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -193,7 +204,17 @@
     padding: 3rem;
 }
 
-/* Abstract background shapes */
+/* Abstract background shapes & Video */
+.auth-video-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: brightness(0.6);
+}
+
 .auth-visual-bg {
     position: absolute;
     inset: 0;
@@ -202,6 +223,7 @@
     background:
         radial-gradient(circle at 20% 20%, #d4f01e1a 0%, transparent 40%),
         radial-gradient(circle at 80% 80%, #6366f11a 0%, transparent 40%);
+    pointer-events: none;
 }
 
 .auth-testimonial-box {

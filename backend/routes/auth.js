@@ -15,7 +15,7 @@ const signRefresh = (id) =>
 
 // ─── POST /api/auth/register ───────────────────────────────────────────────
 router.post('/register', audit('USER_REGISTER', 'User'), async (req, res) => {
-    const { firstName, lastName, email, password, role, phone, licenseNumber } = req.body;
+    const { firstName, lastName, email, password, role, phone, licenseNumber, dateOfBirth, gender, specialization } = req.body;
 
     if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({ success: false, message: 'All fields are required.' });
@@ -30,10 +30,18 @@ router.post('/register', audit('USER_REGISTER', 'User'), async (req, res) => {
 
     // Create role-specific profile
     if (user.role === 'patient') {
-        await Patient.create({ user: user._id });
+        await Patient.create({
+            user: user._id,
+            dateOfBirth,
+            gender
+        });
     } else if (user.role === 'doctor') {
         const license = licenseNumber || `LIC-${Date.now()}`;
-        await Doctor.create({ user: user._id, licenseNumber: license });
+        await Doctor.create({
+            user: user._id,
+            licenseNumber: license,
+            specializations: specialization ? [specialization] : []
+        });
     }
 
     const accessToken = signAccess(user._id);

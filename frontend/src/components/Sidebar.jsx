@@ -2,17 +2,17 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const PATIENT_LINKS = [
-    { icon: '🏠', label: 'Overview', path: '/patient' },
-    { icon: '🩺', label: 'Symptoms', path: '/patient/symptoms' },
-    { icon: '📄', label: 'Reports', path: '/patient/reports' },
-    { icon: '🌿', label: 'Suggestions', path: '/patient/suggestions' },
-    { icon: '🔔', label: 'Reminders', path: '/patient/reminders' },
-    { icon: '👤', label: 'Profile', path: '/patient/profile' },
+    { icon: '🏠', label: 'Overview', path: '/patient', id: 'overview' },
+    { icon: '🩺', label: 'Symptoms', path: '/patient/symptoms', id: 'symptoms' },
+    { icon: '📄', label: 'Reports', path: '/patient/reports', id: 'reports' },
+    { icon: '🌿', label: 'Suggestions', path: '/patient/suggestions', id: 'suggestions' },
+    { icon: '🔔', label: 'Reminders', path: '/patient/reminders', id: 'reminders' },
+    { icon: '👤', label: 'Profile', path: '/patient/profile', id: 'profile' },
 ];
 
 const DOCTOR_LINKS = [
-    { icon: '🏥', label: 'Dashboard', path: '/doctor' },
-    { icon: '🚨', label: 'Alerts', path: '/doctor#alerts' },
+    { icon: '🏥', label: 'Dashboard', path: '/doctor', id: 'dashboard' },
+    { icon: '🚨', label: 'Alerts', path: '/doctor#alerts', id: 'alerts' },
 ];
 
 export default function Sidebar() {
@@ -23,42 +23,74 @@ export default function Sidebar() {
     const links = user?.role === 'doctor' || user?.role === 'admin' ? DOCTOR_LINKS : PATIENT_LINKS;
     const initials = user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}` : '?';
 
+    // Check if we are using the new Patient Dashboard redesign
+    const isPatient = user?.role === 'patient';
+
     return (
-        <aside className="sidebar">
-            <div className="sidebar-logo">
-                VitalPath
-                <span>Healthcare Decision Support</span>
-            </div>
+        <aside className={isPatient ? "pd-sidebar" : "sidebar"}>
+            {isPatient ? (
+                <>
+                    <div className="pd-logo" style={{ background: '#3b82f6', color: '#fff' }}>💙</div>
 
-            <nav className="sidebar-nav">
-                {links.map((link) => (
-                    <button
-                        key={link.path}
-                        className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
-                        onClick={() => navigate(link.path)}
-                    >
-                        <span className="icon">{link.icon}</span>
-                        {link.label}
-                    </button>
-                ))}
-            </nav>
+                    <nav className="pd-nav-list">
+                        {links.map((link) => (
+                            <div
+                                key={link.path}
+                                className={`pd-nav-link ${location.pathname === link.path ? 'active' : ''}`}
+                                onClick={() => navigate(link.path)}
+                                title={link.label}
+                            >
+                                <span style={{ fontSize: '1.25rem' }}>{link.icon}</span>
+                            </div>
+                        ))}
+                    </nav>
 
-            <div className="sidebar-footer">
-                <div className="user-chip">
-                    <div className="user-avatar">{initials}</div>
-                    <div>
-                        <div className="user-name">{user?.firstName} {user?.lastName}</div>
-                        <div className="user-role">{user?.role}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
+                        <div className="pd-nav-link" title="Help"><span style={{ fontSize: '1.25rem' }}>❓</span></div>
+                        <div className="pd-nav-link" title="Theme"><span style={{ fontSize: '1.25rem' }}>🏳️</span></div>
+                        <div className="pd-nav-link" title="Logout" onClick={() => { logout(); navigate('/login'); }} style={{ color: '#ef4444' }}>
+                            <span style={{ fontSize: '1.25rem' }}>🚪</span>
+                        </div>
                     </div>
-                </div>
-                <button
-                    className="btn btn-outline btn-sm"
-                    style={{ width: '100%', marginTop: '0.75rem', borderRadius: '8px' }}
-                    onClick={() => { logout(); navigate('/login'); }}
-                >
-                    Sign out
-                </button>
-            </div>
+                </>
+            ) : (
+                <>
+                    <div className="sidebar-logo">
+                        VitalPath
+                        <span>Healthcare Decision Support</span>
+                    </div>
+
+                    <nav className="sidebar-nav">
+                        {links.map((link) => (
+                            <button
+                                key={link.path}
+                                className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
+                                onClick={() => navigate(link.path)}
+                            >
+                                <span className="icon">{link.icon}</span>
+                                {link.label}
+                            </button>
+                        ))}
+                    </nav>
+
+                    <div className="sidebar-footer">
+                        <div className="user-chip">
+                            <div className="user-avatar">{initials}</div>
+                            <div>
+                                <div className="user-name">{user?.firstName} {user?.lastName}</div>
+                                <div className="user-role">{user?.role}</div>
+                            </div>
+                        </div>
+                        <button
+                            className="btn btn-outline btn-sm"
+                            style={{ width: '100%', marginTop: '0.75rem', borderRadius: '8px' }}
+                            onClick={() => { logout(); navigate('/login'); }}
+                        >
+                            Sign out
+                        </button>
+                    </div>
+                </>
+            )}
         </aside>
     );
 }

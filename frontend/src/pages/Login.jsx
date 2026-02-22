@@ -32,13 +32,7 @@ export default function Login() {
             <div className="auth-container">
                 {/* ── Left Side: Form ── */}
                 <div className="auth-left-panel">
-                    <div className="auth-brand-icon">
-                        <div className="auth-brand-mark">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#000">
-                                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" />
-                            </svg>
-                        </div>
-                    </div>
+
 
                     <h1 className="auth-main-title">Welcome back!</h1>
                     <p className="auth-main-desc">
@@ -120,6 +114,15 @@ export default function Login() {
                 {/* ── Right Side: Visual ── */}
                 <div className="auth-right-panel">
                     <div className="auth-visual-card">
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="auth-video-bg"
+                        >
+                            <source src="/hand.mp4" type="video/mp4" />
+                        </video>
                         <div className="auth-visual-bg"></div>
 
                         <div className="auth-tag-row">

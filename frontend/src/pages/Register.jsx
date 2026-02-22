@@ -6,7 +6,17 @@ import './Auth.css';
 
 export default function Register() {
     const [role, setRole] = useState('patient');
-    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '', licenseNumber: '' });
+    const [form, setForm] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        phone: '',
+        licenseNumber: '',
+        dateOfBirth: '',
+        gender: '',
+        specialization: ''
+    });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -36,13 +46,7 @@ export default function Register() {
             <div className="auth-container">
                 {/* ── Left Side: Form ── */}
                 <div className="auth-left-panel">
-                    <div className="auth-brand-icon">
-                        <div className="auth-brand-mark">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#000">
-                                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" />
-                            </svg>
-                        </div>
-                    </div>
+
 
                     <h1 className="auth-main-title">Create Account</h1>
                     <p className="auth-main-desc">
@@ -113,41 +117,111 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <div className="auth-input-group">
-                            <label className="auth-input-label">Email</label>
-                            <input
-                                className="auth-field"
-                                type="email"
-                                placeholder="name@example.com"
-                                value={form.email}
-                                onChange={set('email')}
-                                required
-                            />
-                        </div>
-
-                        {role === 'doctor' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: role === 'patient' ? '1fr 1fr' : '1fr', gap: role === 'patient' ? '1rem' : '0' }}>
                             <div className="auth-input-group">
-                                <label className="auth-input-label">Medical License</label>
+                                <label className="auth-input-label">Email</label>
                                 <input
                                     className="auth-field"
-                                    placeholder="MH-2024-XXXXX"
-                                    value={form.licenseNumber}
-                                    onChange={set('licenseNumber')}
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    value={form.email}
+                                    onChange={set('email')}
                                     required
                                 />
                             </div>
+                            {role === 'patient' && (
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Phone</label>
+                                    <input
+                                        className="auth-field"
+                                        placeholder="+91 98765 43210"
+                                        value={form.phone}
+                                        onChange={set('phone')}
+                                        required
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {role === 'patient' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Date of Birth</label>
+                                    <input
+                                        className="auth-field"
+                                        type="date"
+                                        value={form.dateOfBirth}
+                                        onChange={set('dateOfBirth')}
+                                        required
+                                    />
+                                </div>
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Gender</label>
+                                    <select
+                                        className="auth-field"
+                                        value={form.gender}
+                                        onChange={set('gender')}
+                                        required
+                                        style={{ appearance: 'none' }}
+                                    >
+                                        <option value="">Select</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
                         )}
 
-                        <div className="auth-input-group">
-                            <label className="auth-input-label">Password</label>
-                            <input
-                                className="auth-field"
-                                type="password"
-                                placeholder="Min 8 characters"
-                                value={form.password}
-                                onChange={set('password')}
-                                required
-                            />
+                        {role === 'doctor' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Medical License</label>
+                                    <input
+                                        className="auth-field"
+                                        placeholder="MH-2024-XXXXX"
+                                        value={form.licenseNumber}
+                                        onChange={set('licenseNumber')}
+                                        required
+                                    />
+                                </div>
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Specialization</label>
+                                    <input
+                                        className="auth-field"
+                                        placeholder="Cardiology, etc."
+                                        value={form.specialization}
+                                        onChange={set('specialization')}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: role === 'doctor' ? '1fr 1fr' : '1fr', gap: role === 'doctor' ? '1rem' : '0' }}>
+                            <div className="auth-input-group">
+                                <label className="auth-input-label">Password</label>
+                                <input
+                                    className="auth-field"
+                                    type="password"
+                                    placeholder="Min 8 chars"
+                                    value={form.password}
+                                    onChange={set('password')}
+                                    required
+                                />
+                            </div>
+                            {role === 'doctor' && (
+                                <div className="auth-input-group">
+                                    <label className="auth-input-label">Phone</label>
+                                    <input
+                                        className="auth-field"
+                                        placeholder="+91 98765 43210"
+                                        value={form.phone}
+                                        onChange={set('phone')}
+                                        required
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <button
@@ -167,6 +241,15 @@ export default function Register() {
                 {/* ── Right Side: Visual ── */}
                 <div className="auth-right-panel">
                     <div className="auth-visual-card">
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="auth-video-bg"
+                        >
+                            <source src="/hand.mp4" type="video/mp4" />
+                        </video>
                         <div className="auth-visual-bg"></div>
 
                         <div className="auth-tag-row">
