@@ -64,6 +64,32 @@ except Exception:
         nlp_ner = None
 
 # ──────────────────────────────────────────────
+# Global Clinical Filters
+# ──────────────────────────────────────────────
+# Common words that are often misidentified as clinical entities in reports
+ENTITY_BLACKLIST = {
+    "date", "phone", "time", "note", "none", "done", "result", "normal", 
+    "abnormal", "urine", "blood", "patient", "hospital", "doctor", "report",
+    "emergency", "contact", "follow", "advice", "instructions", "detail",
+    "observation", "summary", "daily", "twice", "once", "three", "four",
+    "observed", "present", "noted", "detected", "clinical", "medical"
+}
+
+# Sections that typically contain instructions/advisory rather than findings
+ADVISORY_PREFIXES = [
+    r"in case you observe",
+    r"if you experience",
+    r"contact if",
+    r"report to emergency",
+    r"nb\b",
+    r"nota bene",
+    r"disclaimer",
+    r"instructions for patient",
+    r"advice and precautions",
+    r"warning signs",
+]
+
+# ──────────────────────────────────────────────
 # Clinical Keyword Banks (regex-based fallback)
 # ──────────────────────────────────────────────
 SYMPTOM_KEYWORDS = [
@@ -83,8 +109,8 @@ SYMPTOM_KEYWORDS = [
 ]
 
 MEDICATION_KEYWORDS = [
-    # Common drug suffixes (broad catch)
-    r"\b(?!(?:Date|Phone|Time|Note)\b)\w+(?:cillin|mycin|floxacin|prazole|sartan|olol|pril|statin|azole|mab|nib|ide|ine|ate|one)\b",
+    # Common drug suffixes (broad catch) - further restricted
+    r"\b(?!(?:Date|Phone|Time|Note|Urine|Daily|Twice|None|Result)\b)\w+(?:cillin|mycin|floxacin|prazole|sartan|olol|pril|statin|azole|mab|nib|ide|ine|ate|one)\b",
     # Specific common drugs
     r"\bmetformin\b", r"\binsulin\b", r"\baspirin\b", r"\bibuprofen\b",
     r"\bparacetamol\b", r"\bacetaminophen\b", r"\blisinopril\b", r"\batorvastatin\b",
@@ -151,15 +177,52 @@ TEST_KEYWORDS = [
 # Helpers
 # ──────────────────────────────────────────────
 
+def identify_advisory_blocks(text: str) -> List[str]:
+    """
+    Split text into 'Clinical' and 'Advisory' segments.
+    Advisory segments are portions of text that are instructional (e.g., 'NB', 'If you experience...').
+    """
+    lines = text.split('\n')
+    clinical_blocks = []
+    current_block = []
+    is_advisory = False
+
+    for line in lines:
+        cleaned_line = line.strip().lower()
+        # Check for advisory prefix
+        if any(re.search(pat, cleaned_line) for pat in ADVISORY_PREFIXES):
+            is_advisory = True
+            # Flush current clinical block if exists
+            if current_block:
+                clinical_blocks.append('\n'.join(current_block))
+                current_block = []
+        
+        # If we see a strong clinical header, switch back to clinical
+        elif re.search(r"\b(diagnosis|impression|findings|summary|prescription|results|treatment)\b", cleaned_line):
+             if is_advisory and current_block:
+                 # Note: in this simple heuristic, we don't save advisory text
+                 current_block = []
+             is_advisory = False
+
+        if not is_advisory:
+            current_block.append(line)
+    
+    if current_block:
+        clinical_blocks.append('\n'.join(current_block))
+    
+    return clinical_blocks
+
+
 def _regex_extract(text: str, patterns: List[str]) -> List[str]:
     """Extract unique matches from text given a list of regex patterns."""
     found = set()
-    lower_text = text.lower()
     for pat in patterns:
-        for m in re.finditer(pat, lower_text, re.IGNORECASE):
-            # Find the original casing from the text
-            original = text[m.start():m.end()]
-            found.add(original.strip())
+        matches = re.findall(pat, text, re.IGNORECASE)
+        for m in matches:
+            val = m.strip()
+            # Strict filtering: lower() for comparison
+            if val.lower() not in ENTITY_BLACKLIST and len(val) > 2:
+                found.add(val)
     return sorted(found)
 
 
@@ -174,6 +237,9 @@ def _spacy_extract(text: str):
     for ent in doc.ents:
         label = ent.label_
         e_text = ent.text.strip()
+        if e_text.lower() in ENTITY_BLACKLIST:
+            continue
+
         if label == "DISEASE":
             conditions.append(e_text)
         elif label == "CHEMICAL":
@@ -183,43 +249,46 @@ def _spacy_extract(text: str):
 
 
 def extract_all(text: str):
-    """
-    Two-tier extraction:
-    1. scispacy NER for DISEASE/CHEMICAL entities (if available)
-    2. Regex/keyword bank for symptoms, medications, conditions, tests
-    """
-    # --- Regex extraction ---
-    symptoms = _regex_extract(text, SYMPTOM_KEYWORDS)
-    medications = _regex_extract(text, MEDICATION_KEYWORDS)
-    conditions = _regex_extract(text, CONDITION_KEYWORDS)
-    tests = _regex_extract(text, TEST_KEYWORDS)
+    # --- Step 1: Segmentation ---
+    clinical_segments = identify_advisory_blocks(text)
+    processed_text = '\n'.join(clinical_segments)
 
-    # --- scispacy NER (if available, merge results) ---
+    # If segmentation left nothing, usually it means it was all advisory or no clinical content
+    # We'll use the processed text even if it's small, avoiding the full fallback which includes advisoriness
+    if not processed_text.strip() and len(text.strip()) > 0:
+        # If the input was not empty but segments are, EVERYTHING matches advisory prefixes
+        # This is rare, but we should return empty result rather than raw fallback
+        return {"symptoms": [], "conditions": [], "medications": [], "tests": []}
+
+    # --- Step 2: Extraction ---
+    symptoms = _regex_extract(processed_text, SYMPTOM_KEYWORDS)
+    medications = _regex_extract(processed_text, MEDICATION_KEYWORDS)
+    conditions = _regex_extract(processed_text, CONDITION_KEYWORDS)
+    tests = _regex_extract(processed_text, TEST_KEYWORDS)
+
+    # --- Step 3: scispacy NER (if available, merge results) ---
     if nlp_ner is not None:
         try:
-            _, sci_conditions, sci_medications, _ = _spacy_extract(text)
+            _, sci_conditions, sci_medications, _ = _spacy_extract(processed_text)
             # Merge and deduplicate (case-insensitive)
-            existing_meds_lower = {m.lower() for m in medications}
-            for m in sci_medications:
-                if m.lower() not in existing_meds_lower:
-                    medications.append(m)
-                    existing_meds_lower.add(m.lower())
-
-            existing_cond_lower = {c.lower() for c in conditions}
-            for c in sci_conditions:
-                if c.lower() not in existing_cond_lower:
-                    conditions.append(c)
-                    existing_cond_lower.add(c.lower())
+            medications = sorted(list(set(medications + sci_medications)))
+            conditions = sorted(list(set(conditions + sci_conditions)))
         except Exception as e:
             print(f"⚠️ scispacy extraction error: {e}")
 
-    return {
-        "symptoms": symptoms,
-        "conditions": conditions,
-        "medications": medications,
-        "tests": tests,
-    }
+    # --- Step 4: Final Blacklist Scrub (Mandatory) ---
+    def scrub(items):
+        return sorted(list(set([
+            it for it in items 
+            if it.lower() not in ENTITY_BLACKLIST and len(it.strip()) > 2
+        ])))
 
+    return {
+        "symptoms": scrub(symptoms),
+        "conditions": scrub(conditions),
+        "medications": scrub(medications),
+        "tests": scrub(tests),
+    }
 
 # ──────────────────────────────────────────────
 # Document classification heuristics

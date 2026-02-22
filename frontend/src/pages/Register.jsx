@@ -2,6 +2,17 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../api/services';
+import {
+    User,
+    Mail,
+    Phone,
+    Lock,
+    AlertCircle,
+    Calendar,
+    Dna,
+    Medal,
+    Stethoscope
+} from 'lucide-react';
 import './Auth.css';
 
 export default function Register() {
@@ -64,11 +75,15 @@ export default function Register() {
                                 border: '1px solid transparent',
                                 borderColor: role === 'patient' ? '#d4f01e' : 'rgba(255,255,255,0.05)',
                                 background: role === 'patient' ? 'rgba(212,240,30,0.1)' : '#111',
-                                color: role === 'patient' ? '#d4f01e' : '#888'
+                                color: role === 'patient' ? '#d4f01e' : '#888',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem'
                             }}
                             onClick={() => setRole('patient')}
                         >
-                            Patient
+                            <User size={16} /> Patient
                         </button>
                         <button
                             type="button"
@@ -79,24 +94,30 @@ export default function Register() {
                                 border: '1px solid transparent',
                                 borderColor: role === 'doctor' ? '#d4f01e' : 'rgba(255,255,255,0.05)',
                                 background: role === 'doctor' ? 'rgba(212,240,30,0.1)' : '#111',
-                                color: role === 'doctor' ? '#d4f01e' : '#888'
+                                color: role === 'doctor' ? '#d4f01e' : '#888',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem'
                             }}
                             onClick={() => setRole('doctor')}
                         >
-                            Doctor
+                            <Stethoscope size={16} /> Doctor
                         </button>
                     </div>
 
                     {error && (
-                        <div className="alert alert-critical" style={{ marginBottom: '1.5rem', maxWidth: '400px' }}>
-                            ⚠️ {error}
+                        <div className="alert alert-critical" style={{ marginBottom: '1.5rem', maxWidth: '400px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertCircle size={18} /> {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="auth-form" style={{ maxWidth: '440px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div className="auth-input-group">
-                                <label className="auth-input-label">First Name</label>
+                                <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <User size={14} /> First Name
+                                </label>
                                 <input
                                     className="auth-field"
                                     placeholder="Jane"
@@ -106,7 +127,9 @@ export default function Register() {
                                 />
                             </div>
                             <div className="auth-input-group">
-                                <label className="auth-input-label">Last Name</label>
+                                <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <User size={14} /> Last Name
+                                </label>
                                 <input
                                     className="auth-field"
                                     placeholder="Doe"
@@ -119,7 +142,9 @@ export default function Register() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: role === 'patient' ? '1fr 1fr' : '1fr', gap: role === 'patient' ? '1rem' : '0' }}>
                             <div className="auth-input-group">
-                                <label className="auth-input-label">Email</label>
+                                <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <Mail size={14} /> Email
+                                </label>
                                 <input
                                     className="auth-field"
                                     type="email"
@@ -131,7 +156,9 @@ export default function Register() {
                             </div>
                             {role === 'patient' && (
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Phone</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Phone size={14} /> Phone
+                                    </label>
                                     <input
                                         className="auth-field"
                                         placeholder="+91 98765 43210"
@@ -146,7 +173,9 @@ export default function Register() {
                         {role === 'patient' && (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Date of Birth</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Calendar size={14} /> Date of Birth
+                                    </label>
                                     <input
                                         className="auth-field"
                                         type="date"
@@ -156,7 +185,9 @@ export default function Register() {
                                     />
                                 </div>
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Gender</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Dna size={14} /> Gender
+                                    </label>
                                     <select
                                         className="auth-field"
                                         value={form.gender}
@@ -176,7 +207,9 @@ export default function Register() {
                         {role === 'doctor' && (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Medical License</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Medal size={14} /> Medical License
+                                    </label>
                                     <input
                                         className="auth-field"
                                         placeholder="MH-2024-XXXXX"
@@ -186,7 +219,9 @@ export default function Register() {
                                     />
                                 </div>
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Specialization</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Stethoscope size={14} /> Specialization
+                                    </label>
                                     <input
                                         className="auth-field"
                                         placeholder="Cardiology, etc."
@@ -200,7 +235,9 @@ export default function Register() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: role === 'doctor' ? '1fr 1fr' : '1fr', gap: role === 'doctor' ? '1rem' : '0' }}>
                             <div className="auth-input-group">
-                                <label className="auth-input-label">Password</label>
+                                <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <Lock size={14} /> Password
+                                </label>
                                 <input
                                     className="auth-field"
                                     type="password"
@@ -212,7 +249,9 @@ export default function Register() {
                             </div>
                             {role === 'doctor' && (
                                 <div className="auth-input-group">
-                                    <label className="auth-input-label">Phone</label>
+                                    <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Phone size={14} /> Phone
+                                    </label>
                                     <input
                                         className="auth-field"
                                         placeholder="+91 98765 43210"

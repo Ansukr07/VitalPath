@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../api/services';
+import { Mail, Lock, AlertCircle } from 'lucide-react';
 import './Auth.css';
 
 export default function Login() {
@@ -40,14 +41,16 @@ export default function Login() {
                     </p>
 
                     {error && (
-                        <div className="alert alert-critical" style={{ marginBottom: '1.5rem', maxWidth: '400px' }}>
-                            ⚠️ {error}
+                        <div className="alert alert-critical" style={{ marginBottom: '1.5rem', maxWidth: '400px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertCircle size={18} /> {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="auth-input-group">
-                            <label className="auth-input-label">Email</label>
+                            <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <Mail size={14} /> Email
+                            </label>
                             <input
                                 className="auth-field"
                                 type="email"
@@ -59,7 +62,9 @@ export default function Login() {
                         </div>
 
                         <div className="auth-input-group">
-                            <label className="auth-input-label">Password</label>
+                            <label className="auth-input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <Lock size={14} /> Password
+                            </label>
                             <input
                                 className="auth-field"
                                 type="password"

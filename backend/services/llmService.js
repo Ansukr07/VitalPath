@@ -17,7 +17,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_MODEL = process.env.LLM_MODEL || 'gemini-1.5-flash';
 const genAI = new GoogleGenerativeAI(LLM_API_KEY);
 
 /**
@@ -28,6 +27,7 @@ async function callLLM(systemPrompt, userMessage, maxTokens = 800, jsonMode = fa
         throw new Error('LLM_API_KEY not configured. Please set it in .env');
     }
 
+    const LLM_MODEL = process.env.LLM_MODEL || 'gemini-flash-lite-latest';
     console.log(`[LLM] Calling Gemini: ${LLM_MODEL} (maxTokens=${maxTokens}, json=${jsonMode})`);
 
     try {
@@ -52,8 +52,14 @@ async function callLLM(systemPrompt, userMessage, maxTokens = 800, jsonMode = fa
         const response = await result.response;
         return response.text().trim();
     } catch (err) {
-        console.error(`❌ Gemini API Error: ${err.message}`);
-        throw new Error(`LLM Request failed: ${err.message}`);
+        let errorMsg = err.message;
+        if (err.message.includes('429')) {
+            console.error('⚠️ [LLM] Quota Exceeded (429). Please check your Google AI Studio billing/plan.');
+            errorMsg = `Quota Exceeded (429). This usually happens on free tiers. ${err.message}`;
+        } else {
+            console.error(`❌ Gemini API Error: ${err.message}`);
+        }
+        throw new Error(`LLM Request failed: ${errorMsg}`);
     }
 }
 

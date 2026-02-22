@@ -1,10 +1,20 @@
 import Sidebar from '../../components/Sidebar';
+import {
+    Droplet,
+    Activity,
+    Moon,
+    BrainCircuit,
+    Stethoscope,
+    Leaf,
+    ShieldAlert,
+    Sparkles
+} from 'lucide-react';
 import './PatientDashboard.css';
 
 const SUGGESTIONS = [
     {
         category: 'Hydration & Nutrition',
-        icon: '💧',
+        icon: <Droplet size={32} color="#0284c7" />,
         items: [
             'Aim for 8–10 glasses of water daily to support general body function.',
             'Include a variety of colorful vegetables in your meals for micronutrient diversity.',
@@ -14,7 +24,7 @@ const SUGGESTIONS = [
     },
     {
         category: 'Physical Activity',
-        icon: '🏃',
+        icon: <Activity size={32} color="#10b981" />,
         items: [
             'A 30-minute brisk walk 5 days a week supports cardiovascular health (general wellness).',
             'Stretching for 10 minutes in the morning can improve flexibility and reduce stiffness.',
@@ -23,7 +33,7 @@ const SUGGESTIONS = [
     },
     {
         category: 'Sleep & Rest',
-        icon: '😴',
+        icon: <Moon size={32} color="#6366f1" />,
         items: [
             'Aim for 7–9 hours of sleep per night for general wellness.',
             'Maintain a consistent sleep schedule, even on weekends.',
@@ -32,7 +42,7 @@ const SUGGESTIONS = [
     },
     {
         category: 'Mental Wellness',
-        icon: '🧘',
+        icon: <BrainCircuit size={32} color="#ec4899" />,
         items: [
             'Practice 10 minutes of mindful breathing or meditation daily.',
             'Engage in a hobby or creative activity at least once per week.',
@@ -41,7 +51,7 @@ const SUGGESTIONS = [
     },
     {
         category: 'Preventive Care',
-        icon: '🩺',
+        icon: <Stethoscope size={32} color="#8b5cf6" />,
         items: [
             'Schedule regular check-ups as advised by your doctor.',
             'Keep track of any new symptoms and discuss them at your next appointment.',
@@ -61,7 +71,7 @@ export default function Suggestions() {
                 </header>
 
                 <div style={{ background: '#f0f9ff', border: '1px solid #e0f2fe', borderRadius: '16px', padding: '1.5rem', marginBottom: '2.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                    <div style={{ fontSize: '2rem' }}>🌿</div>
+                    <div style={{ color: '#0369a1' }}><Leaf size={40} /></div>
                     <div>
                         <strong style={{ color: '#0369a1', fontSize: '1.1rem', display: 'block', marginBottom: '0.25rem' }}>General Wellness Guidelines</strong>
                         <p style={{ color: '#0c4a6e', fontSize: '0.9rem', lineHeight: 1.5 }}>
@@ -74,13 +84,13 @@ export default function Suggestions() {
                     {SUGGESTIONS.map((section) => (
                         <div key={section.category} className="pd-section-card" style={{ padding: '2rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <div style={{ fontSize: '2.5rem' }}>{section.icon}</div>
+                                <div>{section.icon}</div>
                                 <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--pd-text)' }}>{section.category}</h3>
                             </div>
                             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {section.items.map((item, i) => (
                                     <li key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem', color: '#475569', alignItems: 'flex-start', lineHeight: 1.5 }}>
-                                        <span style={{ color: 'var(--pd-accent)', fontWeight: 800, marginTop: '2px' }}>✦</span>
+                                        <Sparkles size={14} style={{ color: 'var(--pd-accent)', marginTop: '4px', flexShrink: 0 }} />
                                         {item}
                                     </li>
                                 ))}
@@ -89,8 +99,11 @@ export default function Suggestions() {
                     ))}
                 </div>
 
-                <div style={{ marginTop: '3rem', borderTop: '1px solid #e2e8f0', paddingTop: '2rem', fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                    <strong>⚕️ Medical Disclaimer:</strong> These suggestions are general wellness tips and are NOT personalized medical advice or substitutes for professional healthcare. The VitalPath platform is a decision-support tool — a licensed physician must always guide your healthcare decisions.
+                <div style={{ marginTop: '3rem', borderTop: '1px solid #e2e8f0', paddingTop: '2rem', fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic', display: 'flex', gap: '0.75rem' }}>
+                    <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p>
+                        <strong>Medical Disclaimer:</strong> These suggestions are general wellness tips and are NOT personalized medical advice or substitutes for professional healthcare. The VitalPath platform is a decision-support tool — a licensed physician must always guide your healthcare decisions.
+                    </p>
                 </div>
             </main>
         </div>

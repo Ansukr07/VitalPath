@@ -1,6 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import {
+    Stethoscope,
+    Lightbulb,
+    ChevronUp,
+    ChevronRight,
+    ShieldCheck,
+    Activity,
+    BrainCircuit
+} from 'lucide-react';
 import './Landing.css';
 
 const PRICING_PLANS = [
@@ -188,7 +197,7 @@ export default function LandingPage() {
 
                             <div className="lp-card-actions">
                                 <button className="lp-dark-btn lp-btn-lg" onClick={() => navigate('/register')}>
-                                    Start Now <span className="lp-arrow">›</span>
+                                    Start Now <ChevronRight className="lp-arrow" size={20} />
                                 </button>
                                 <button className="lp-ghost-btn" onClick={() => navigate('/login')}>
                                     Watch demo
@@ -206,7 +215,7 @@ export default function LandingPage() {
 
                 {/* Centered intro */}
                 <div className="lp-feat-intro">
-                    <h2 className="lp-feat-intro-title">Art and science of clinical intelligence. 🩺</h2>
+                    <h2 className="lp-feat-intro-title">Art and science of clinical intelligence. <Stethoscope size={38} style={{ verticalAlign: 'middle', display: 'inline-block', color: 'var(--pd-accent)' }} /></h2>
                     <p className="lp-feat-intro-sub">Explore how VitalPath supports better care decisions for every patient.</p>
                 </div>
 
@@ -246,7 +255,7 @@ export default function LandingPage() {
 
                             /* ── Card C: Icon — lavender, lightbulb + centered text ── */
                             <div key={`c-${pass}`} className="lp-mq-card lp-mq-icon-card">
-                                <span className="lp-mq-bulb">💡</span>
+                                <Lightbulb className="lp-mq-bulb" size={32} />
                                 <p className="lp-mq-icon-text">
                                     Decision Support<br />
                                     for Triage &amp;<br />
@@ -259,7 +268,7 @@ export default function LandingPage() {
                                 <div className="lp-mq-numblock">
                                     <span className="lp-mq-big-num">20</span>
                                     <span className="lp-mq-num-suffix">
-                                        <span className="lp-mq-arrow-up">▲</span>
+                                        <ChevronUp className="lp-mq-arrow-up" size={16} strokeWidth={4} />
                                         <span className="lp-mq-plus">+</span>
                                     </span>
                                 </div>
