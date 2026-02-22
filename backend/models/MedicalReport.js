@@ -23,6 +23,16 @@ const medicalReportSchema = new mongoose.Schema(
             rawJson: { type: mongoose.Schema.Types.Mixed },
             parsedAt: { type: Date },
             parseStatus: { type: String, enum: ['pending', 'processing', 'done', 'failed'], default: 'pending' },
+            // Rich extraction fields
+            patientInfo: { type: mongoose.Schema.Types.Mixed },    // { name, age, gender, id }
+            doctorInfo: { type: mongoose.Schema.Types.Mixed },     // { name, specialization, hospital, department }
+            chiefComplaints: [{ type: String }],
+            historyOfPresentIllness: { type: String },
+            pastMedicalHistory: [{ type: String }],
+            medications: [{ type: mongoose.Schema.Types.Mixed }],  // [{ name, dosage, frequency, duration, route }]
+            investigations: [{ type: mongoose.Schema.Types.Mixed }], // [{ name, result, normalRange, status }]
+            diagnosis: [{ type: String }],
+            followUp: { type: String },
         },
         // ClinicalBERT structured data
         clinicalEntities: {

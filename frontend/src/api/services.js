@@ -40,6 +40,7 @@ export const reportService = {
     getById: (id) => api.get(`/reports/${id}`),
     addNotes: (id, n) => api.patch(`/reports/${id}/notes`, { notes: n }),
     delete: (id) => api.delete(`/reports/${id}`),
+    reparse: (id) => api.post(`/reports/${id}/reparse`),
 };
 
 // ── Reminders ────────────────────────────────────────────────────────────────

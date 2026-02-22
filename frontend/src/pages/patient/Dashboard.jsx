@@ -409,7 +409,7 @@ export default function PatientDashboard() {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 {stats.reports.slice(0, 3).map((rep) => (
-                                    <div key={rep._id} className="pd-session-item" onClick={() => navigate('/patient/reports')}>
+                                    <div key={rep._id} className="pd-session-item" onClick={() => navigate(`/patient/reports/${rep._id}`)}>
                                         <div className="pd-play-btn">📄</div>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{rep.originalName}</div>

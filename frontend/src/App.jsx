@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import PatientDashboard from './pages/patient/Dashboard';
 import SymptomForm from './pages/patient/SymptomForm';
 import Reports from './pages/patient/Reports';
+import ReportDetail from './pages/patient/ReportDetail';
 import Suggestions from './pages/patient/Suggestions';
 import Reminders from './pages/patient/Reminders';
 import PatientProfile from './pages/patient/Profile';
@@ -41,6 +42,7 @@ function AppRoutes() {
       <Route path="/patient" element={<ProtectedRoute roles={['patient']}><PatientDashboard /></ProtectedRoute>} />
       <Route path="/patient/symptoms" element={<ProtectedRoute roles={['patient']}><SymptomForm /></ProtectedRoute>} />
       <Route path="/patient/reports" element={<ProtectedRoute roles={['patient']}><Reports /></ProtectedRoute>} />
+      <Route path="/patient/reports/:id" element={<ProtectedRoute roles={['patient']}><ReportDetail /></ProtectedRoute>} />
       <Route path="/patient/suggestions" element={<ProtectedRoute roles={['patient']}><Suggestions /></ProtectedRoute>} />
       <Route path="/patient/reminders" element={<ProtectedRoute roles={['patient']}><Reminders /></ProtectedRoute>} />
       <Route path="/patient/profile" element={<ProtectedRoute roles={['patient']}><PatientProfile /></ProtectedRoute>} />

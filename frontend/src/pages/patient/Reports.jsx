@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { reportService } from '../../api/services';
 import './PatientDashboard.css';
@@ -7,6 +8,7 @@ import './PatientDashboard.css';
 const REPORT_TYPES = ['blood_test', 'xray', 'mri', 'ct_scan', 'ecg', 'urine_test', 'biopsy', 'prescription', 'discharge_summary', 'other'];
 
 export default function Reports() {
+    const navigate = useNavigate();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -169,6 +171,17 @@ export default function Reports() {
                                                         <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', border: '1px solid #f1f5f9', marginBottom: '1.5rem' }}>
                                                             Note: This summary is generated via automated analysis. Please review the full document with your physician for clinical interpretation.
                                                         </div>
+
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); navigate(`/patient/reports/${r._id}`); }}
+                                                            style={{
+                                                                background: 'var(--pd-accent)', color: '#fff', border: 'none', borderRadius: '12px',
+                                                                padding: '0.65rem 1.25rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                                                                transition: 'all 0.2s', width: '100%'
+                                                            }}
+                                                        >
+                                                            View Full Analysis →
+                                                        </button>
 
                                                         {/* ClinicalBERT Structured Entities */}
                                                         {r.clinicalEntities && (

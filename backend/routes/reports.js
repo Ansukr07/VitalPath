@@ -9,7 +9,7 @@ const audit = require('../middleware/audit');
 const { parseMedicalReport } = require('../services/llmService');
 const { extractEntities, extractEntitiesOCR, classifyDocument } = require('../services/clinicalBertService');
 const fs = require('fs');
-const { PDFParse } = require('pdf-parse');
+const pdfParse = require('pdf-parse');
 
 // ─── POST /api/reports/upload ─────────────────────────────────────────────
 router.post(
@@ -120,7 +120,7 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 // ─── POST /api/reports/:id/reparse ────────────────────────────────────────
-router.post('/:id/reparse', protect, authorize('admin', 'doctor'), async (req, res) => {
+router.post('/:id/reparse', protect, authorize('admin', 'doctor', 'patient'), async (req, res) => {
     const report = await MedicalReport.findById(req.params.id);
     if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
 
@@ -146,7 +146,7 @@ async function triggerLLMParsing(reportId) {
         try {
             if (report.mimeType === 'application/pdf') {
                 const dataBuffer = fs.readFileSync(report.filePath);
-                const pdfData = await new PDFParse(dataBuffer);
+                const pdfData = await pdfParse(dataBuffer);
                 extractedText = pdfData.text || extractedText;
                 console.log(`[OCR] Extracted ${extractedText.length} chars from PDF: ${report.originalName}`);
             } else if (report.mimeType.startsWith('text/')) {
@@ -180,6 +180,16 @@ async function triggerLLMParsing(reportId) {
             'parsedData.rawJson': parsed,
             'parsedData.parsedAt': new Date(),
             'parsedData.parseStatus': 'done',
+            // Rich extraction fields from expanded LLM prompt
+            'parsedData.patientInfo': parsed.patientInfo || null,
+            'parsedData.doctorInfo': parsed.doctorInfo || null,
+            'parsedData.chiefComplaints': parsed.chiefComplaints || [],
+            'parsedData.historyOfPresentIllness': parsed.historyOfPresentIllness || null,
+            'parsedData.pastMedicalHistory': parsed.pastMedicalHistory || [],
+            'parsedData.medications': parsed.medications || [],
+            'parsedData.investigations': parsed.investigations || [],
+            'parsedData.diagnosis': parsed.diagnosis || [],
+            'parsedData.followUp': parsed.followUp || null,
             // ClinicalBERT Data
             clinicalEntities: {
                 symptoms: bertEntities.symptoms || [],

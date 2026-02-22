@@ -23,12 +23,12 @@ const genAI = new GoogleGenerativeAI(LLM_API_KEY);
 /**
  * Internal function to call LLM using Google SDK
  */
-async function callLLM(systemPrompt, userMessage, maxTokens = 800) {
+async function callLLM(systemPrompt, userMessage, maxTokens = 800, jsonMode = false) {
     if (!LLM_API_KEY) {
         throw new Error('LLM_API_KEY not configured. Please set it in .env');
     }
 
-    console.log(`[LLM] Calling Gemini: ${LLM_MODEL}`);
+    console.log(`[LLM] Calling Gemini: ${LLM_MODEL} (maxTokens=${maxTokens}, json=${jsonMode})`);
 
     try {
         const model = genAI.getGenerativeModel({
@@ -36,12 +36,17 @@ async function callLLM(systemPrompt, userMessage, maxTokens = 800) {
             systemInstruction: systemPrompt
         });
 
+        const genConfig = {
+            maxOutputTokens: maxTokens,
+            temperature: 0.1,
+        };
+        if (jsonMode) {
+            genConfig.responseMimeType = 'application/json';
+        }
+
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-            generationConfig: {
-                maxOutputTokens: maxTokens,
-                temperature: 0.1,
-            },
+            generationConfig: genConfig,
         });
 
         const response = await result.response;
@@ -54,17 +59,49 @@ async function callLLM(systemPrompt, userMessage, maxTokens = 800) {
 
 // ─── PROMPT 1: Parse medical report → structured JSON ─────────────────────
 const REPORT_PARSE_SYSTEM_PROMPT = `
-You are a medical report parser. Your ONLY job is to extract structured data from medical test reports.
-You MUST NOT provide any diagnosis, treatment suggestions, or medical advice.
-Return ONLY a valid JSON object with these fields:
+You are a medical report parser. Your ONLY job is to extract structured data from medical documents.
+You MUST NOT provide any diagnosis suggestions, treatment recommendations, or medical advice.
+Be thorough — extract EVERY piece of factual information present in the document.
+
+Return ONLY a valid JSON object with these fields (use null or empty arrays/objects for missing fields):
 {
-  "reportType": "string (blood_test|xray|mri|ct_scan|ecg|urine_test|other)",
+  "reportType": "string (blood_test|xray|mri|ct_scan|ecg|urine_test|biopsy|prescription|discharge_summary|consultation|other)",
   "reportDate": "ISO date string or null",
-  "keyValues": { "test_name": "value with unit" },
-  "flaggedItems": ["item outside normal range (just state the fact, no interpretation)"],
-  "summary": "One sentence describing what type of report this is and what it contains. Do NOT interpret results."
+  "patientInfo": {
+    "name": "string or null",
+    "age": "string or null",
+    "gender": "string or null",
+    "id": "string (patient ID/MRN) or null"
+  },
+  "doctorInfo": {
+    "name": "string or null",
+    "specialization": "string or null",
+    "hospital": "string or null",
+    "department": "string or null"
+  },
+  "chiefComplaints": ["list of chief complaints mentioned"],
+  "historyOfPresentIllness": "string — detailed narrative of the present illness as stated in the document, or null",
+  "pastMedicalHistory": ["list of past medical conditions, surgeries, or relevant history items"],
+  "medications": [
+    { "name": "drug name", "dosage": "dosage if mentioned", "frequency": "frequency if mentioned", "duration": "duration if mentioned", "route": "route if mentioned" }
+  ],
+  "investigations": [
+    { "name": "test/investigation name", "result": "result value with unit", "normalRange": "normal range if mentioned", "status": "normal|abnormal|critical or null" }
+  ],
+  "diagnosis": ["list of diagnoses or impressions mentioned"],
+  "followUp": "string — follow-up instructions or plan, or null",
+  "keyValues": { "parameter_name": "value with unit" },
+  "flaggedItems": ["items that are explicitly marked as abnormal, critical, or outside normal range"],
+  "summary": "A comprehensive 3-5 sentence summary covering: what type of document this is, who the patient and doctor are, the main complaints/findings, key test results if any, and the overall clinical picture. State facts only — do NOT interpret or give advice."
 }
-If you cannot parse the report, return: { "error": "Unable to parse report", "summary": "Manual review required" }
+
+Important rules:
+- Extract ALL medications mentioned, including name, dosage, frequency, and duration when available.
+- Extract ALL investigation/test results with their values, units, and normal ranges when available.
+- List ALL chief complaints, not just the first one.
+- Include the full history of present illness narrative if available.
+- The summary should be detailed and informative, not a single generic sentence.
+- If you cannot parse the report, return: { "error": "Unable to parse report", "summary": "Manual review required" }
 `.trim();
 
 /**
@@ -73,11 +110,19 @@ If you cannot parse the report, return: { "error": "Unable to parse report", "su
  * @returns {Object} parsed structured data
  */
 async function parseMedicalReport(reportText) {
-    const truncated = reportText.slice(0, 4000); // avoid token limits
-    const raw = await callLLM(REPORT_PARSE_SYSTEM_PROMPT, `Parse this medical report:\n\n${truncated}`, 600);
+    const truncated = reportText.slice(0, 6000); // increased limit for richer extraction
+    const raw = await callLLM(
+        REPORT_PARSE_SYSTEM_PROMPT,
+        `Parse this medical report thoroughly. Extract every detail:\n\n${truncated}`,
+        4096,
+        true  // JSON mode — forces valid JSON output
+    );
     try {
-        return JSON.parse(raw);
+        // Handle markdown-wrapped JSON (```json ... ```) just in case
+        const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+        return JSON.parse(cleaned);
     } catch {
+        console.error('[LLM] JSON parse failed. Raw response:', raw.substring(0, 500));
         return { error: 'LLM returned invalid JSON', raw, summary: 'Manual review required' };
     }
 }
