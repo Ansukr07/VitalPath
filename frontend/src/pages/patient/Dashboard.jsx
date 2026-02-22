@@ -24,7 +24,7 @@ export default function PatientDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileRes, triageRes, symptomsRes, remindersRes, reportsRes] = await Promise.all([
+                const results = await Promise.allSettled([
                     patientService.getProfile(),
                     patientService.getTriageHistory(),
                     patientService.getSymptomHistory(),
@@ -32,12 +32,21 @@ export default function PatientDashboard() {
                     reportService.list()
                 ]);
 
+                const getValue = (result, fallback = []) =>
+                    result.status === 'fulfilled' ? result.value.data.data : fallback;
+
+                const failedCount = results.filter(r => r.status === 'rejected').length;
+                if (failedCount > 0) {
+                    console.warn(`${failedCount} dashboard request(s) failed:`,
+                        results.filter(r => r.status === 'rejected').map(r => r.reason?.message));
+                }
+
                 setStats({
-                    profile: profileRes.data.data,
-                    triageHistory: triageRes.data.data || [],
-                    symptoms: symptomsRes.data.data || [],
-                    reminders: remindersRes.data.data || [],
-                    reports: reportsRes.data.data || []
+                    profile: getValue(results[0], null),
+                    triageHistory: getValue(results[1]),
+                    symptoms: getValue(results[2]),
+                    reminders: getValue(results[3]),
+                    reports: getValue(results[4])
                 });
             } catch (err) {
                 console.error('Error fetching dashboard data:', err);

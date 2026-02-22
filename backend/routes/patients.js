@@ -176,6 +176,18 @@ router.post('/clinical-insights', protect, authorize('patient'), async (req, res
 });
 
 // ─── GET /api/patients/triage/history ─────────────────────────────────────
+router.get('/triage/history', protect, authorize('patient'), async (req, res) => {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) return res.status(404).json({ success: false, message: 'Patient not found.' });
+
+    const history = await TriageResult.find({ patient: patient._id })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .populate('triggeredBy', 'firstName lastName role')
+        .populate('symptomLog');
+
+    res.json({ success: true, data: history });
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 function parseDurationToDays(duration) {
