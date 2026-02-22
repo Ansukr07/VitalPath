@@ -25,9 +25,14 @@ const ML_TIMEOUT_MS = 5000; // 5 second timeout
  * @param {Object} features - normalized patient features for ML model
  * @returns {Object} ML result with available flag
  */
-async function getMLRiskScore(features) {
+async function getMLRiskScore(features, clinicalEmbeddings = []) {
     try {
-        const response = await axios.post(ML_SERVICE_URL, features, {
+        const payload = { ...features };
+        if (clinicalEmbeddings.length > 0) {
+            payload.clinical_embeddings = clinicalEmbeddings;
+        }
+
+        const response = await axios.post(ML_SERVICE_URL, payload, {
             timeout: ML_TIMEOUT_MS,
             headers: { 'Content-Type': 'application/json' },
         });

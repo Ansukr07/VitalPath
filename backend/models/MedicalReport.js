@@ -24,6 +24,18 @@ const medicalReportSchema = new mongoose.Schema(
             parsedAt: { type: Date },
             parseStatus: { type: String, enum: ['pending', 'processing', 'done', 'failed'], default: 'pending' },
         },
+        // ClinicalBERT structured data
+        clinicalEntities: {
+            symptoms: [{ type: String }],
+            conditions: [{ type: String }],
+            medications: [{ type: String }],
+            tests: [{ type: String }],
+        },
+        bertClassification: {
+            docType: { type: String },
+            consultationType: { type: String },
+            confidence: { type: Number },
+        },
         doctorNotes: { type: String },
         reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         reviewedAt: { type: Date },

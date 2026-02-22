@@ -7,6 +7,7 @@ const { protect, authorize } = require('../middleware/auth');
 const audit = require('../middleware/audit');
 const { runTriageEngine, mergePriorities } = require('../services/triageEngine');
 const { getMLRiskScore, buildMLFeatures } = require('../services/mlService');
+const { getClinicalEmbeddings } = require('../services/clinicalBertService');
 
 // ─── GET /api/patients/me ─────────────────────────────────────────────────
 router.get('/me', protect, authorize('patient'), async (req, res) => {
@@ -67,6 +68,10 @@ router.post('/symptoms', protect, authorize('patient'), audit('SUBMIT_SYMPTOMS',
         durationDays: parseDurationToDays(s.duration),
     }));
 
+    // Generate ClinicalBERT embeddings for symptoms
+    const symptomText = processedSymptoms.map(s => `${s.name}: ${s.notes || ''}`).join('. ') + '. ' + (additionalNotes || '');
+    const { embeddings } = await getClinicalEmbeddings(symptomText);
+
     // Save symptom log
     const symptomLog = await Symptom.create({
         patient: patient._id,
@@ -74,6 +79,7 @@ router.post('/symptoms', protect, authorize('patient'), audit('SUBMIT_SYMPTOMS',
         symptoms: processedSymptoms,
         additionalNotes,
         currentVitals,
+        clinicalEmbeddings: embeddings || []
     });
 
     // Use current vitals (submitted) or patient's latest vitals
@@ -148,18 +154,28 @@ router.get('/symptoms', protect, authorize('patient'), async (req, res) => {
     res.json({ success: true, data: logs });
 });
 
-// ─── GET /api/patients/triage/history ─────────────────────────────────────
-router.get('/triage/history', protect, authorize('patient'), async (req, res) => {
-    const patient = await Patient.findOne({ user: req.user._id });
-    if (!patient) return res.status(404).json({ success: false, message: 'Patient not found.' });
+// ─── POST /api/patients/clinical-insights ────────────────────────────────
+// Live ClinicalBERT extraction (Live Insights)
+router.post('/clinical-insights', protect, authorize('patient'), async (req, res) => {
+    const { text } = req.body;
+    if (!text || text.length < 5) {
+        return res.json({ success: true, symptoms: [], medications: [] });
+    }
 
-    const history = await TriageResult.find({ patient: patient._id })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .populate('symptomLog');
+    const { extractEntities } = require('../services/clinicalBertService');
+    const result = await extractEntities(text);
 
-    res.json({ success: true, data: history });
+    res.json({
+        success: true,
+        data: {
+            symptoms: result.symptoms || [],
+            medications: result.medications || [],
+            tests: result.tests || []
+        }
+    });
 });
+
+// ─── GET /api/patients/triage/history ─────────────────────────────────────
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 function parseDurationToDays(duration) {

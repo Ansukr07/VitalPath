@@ -14,39 +14,42 @@
  * Uses OpenAI-compatible API (works with OpenAI, Groq, or other providers)
  */
 
-const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_MODEL = process.env.LLM_MODEL || 'gpt-4o-mini';
-const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.openai.com/v1';
-const LLM_TIMEOUT_MS = 30000;
+const LLM_MODEL = process.env.LLM_MODEL || 'gemini-1.5-flash';
+const genAI = new GoogleGenerativeAI(LLM_API_KEY);
 
 /**
- * Internal function to call LLM
+ * Internal function to call LLM using Google SDK
  */
 async function callLLM(systemPrompt, userMessage, maxTokens = 800) {
     if (!LLM_API_KEY) {
         throw new Error('LLM_API_KEY not configured. Please set it in .env');
     }
 
-    const response = await axios.post(
-        `${LLM_BASE_URL}/chat/completions`,
-        {
-            model: LLM_MODEL,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMessage },
-            ],
-            max_tokens: maxTokens,
-            temperature: 0.1,
-        },
-        {
-            headers: { Authorization: `Bearer ${LLM_API_KEY}`, 'Content-Type': 'application/json' },
-            timeout: LLM_TIMEOUT_MS,
-        }
-    );
+    console.log(`[LLM] Calling Gemini: ${LLM_MODEL}`);
 
-    return response.data.choices[0].message.content.trim();
+    try {
+        const model = genAI.getGenerativeModel({
+            model: LLM_MODEL,
+            systemInstruction: systemPrompt
+        });
+
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+            generationConfig: {
+                maxOutputTokens: maxTokens,
+                temperature: 0.1,
+            },
+        });
+
+        const response = await result.response;
+        return response.text().trim();
+    } catch (err) {
+        console.error(`❌ Gemini API Error: ${err.message}`);
+        throw new Error(`LLM Request failed: ${err.message}`);
+    }
 }
 
 // ─── PROMPT 1: Parse medical report → structured JSON ─────────────────────
@@ -153,9 +156,31 @@ Provide only general, non-medical lifestyle wellness suggestions.`;
     return callLLM(LIFESTYLE_SYSTEM_PROMPT, prompt, 400);
 }
 
+// ─── PROMPT 5: Patient-Friendly History Explanation ──────────────────────
+const HISTORY_EXPLAIN_SYSTEM_PROMPT = `
+You are a medical documentation simplifier. You take factual clinical signals and rewrite them for patients.
+IMPORTANT RULES:
+- Use simple, non-medical language.
+- DO NOT provide diagnosis, predictions, or treatment suggestions.
+- Be supportive but factual.
+- Focus ONLY on explaining what the extracted medical elements mean in plain English.
+- Maximum 200 words.
+`.trim();
+
+/**
+ * Convert structured ClinicalBERT signals into a patient-friendly explanation
+ * @param {Object} signals - structured entities (symptoms, medications, tests)
+ * @returns {string} simplified explanation
+ */
+async function explainStructuredHistory(signals) {
+    const prompt = `Rewrite these clinical signals for a patient:\n${JSON.stringify(signals)}`;
+    return callLLM(HISTORY_EXPLAIN_SYSTEM_PROMPT, prompt, 400);
+}
+
 module.exports = {
     parseMedicalReport,
     summarizePatientForDoctor,
     explainMedicalTerm,
     getLifestyleSuggestions,
+    explainStructuredHistory,
 };

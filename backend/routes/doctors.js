@@ -8,6 +8,7 @@ const MedicalReport = require('../models/MedicalReport');
 const { protect, authorize } = require('../middleware/auth');
 const audit = require('../middleware/audit');
 const { summarizePatientForDoctor } = require('../services/llmService');
+const { findSimilarCases } = require('../services/clinicalBertService');
 
 // ─── GET /api/doctors/me ──────────────────────────────────────────────────
 router.get('/me', protect, authorize('doctor'), async (req, res) => {
@@ -168,6 +169,50 @@ router.get('/alerts', protect, authorize('doctor', 'admin'), async (req, res) =>
         message: criticalPatients.length > 0
             ? `${criticalPatients.length} patient(s) require urgent attention.`
             : 'No high-priority alerts at this time.',
+    });
+});
+
+// ─── GET /api/doctors/patients/:patientId/similarity ──────────────────────
+// Find cases with similar clinical embeddings (Non-Diagnostic)
+router.get('/patients/:patientId/similarity', protect, authorize('doctor'), async (req, res) => {
+    const targetPatient = await Patient.findById(req.params.patientId);
+    if (!targetPatient) return res.status(404).json({ success: false, message: 'Patient not found.' });
+
+    // Latest symptom log for this patient
+    const targetLog = await Symptom.findOne({ patient: targetPatient._id }).sort({ createdAt: -1 });
+    if (!targetLog || !targetLog.clinicalEmbeddings?.length) {
+        return res.status(400).json({ success: false, message: 'Case features (embeddings) not available for this patient.' });
+    }
+
+    // Find other patients with embeddings (excluding current)
+    const candidates = await Symptom.find({
+        patient: { $ne: targetPatient._id },
+        clinicalEmbeddings: { $exists: true, $not: { $size: 0 } }
+    }).limit(100).populate('patient', 'firstName lastName triageStatus');
+
+    if (candidates.length === 0) {
+        return res.json({ success: true, data: [], message: 'No similar cases found in database.' });
+    }
+
+    const candidateEmbeddings = candidates.map(c => c.clinicalEmbeddings);
+    const result = await findSimilarCases(targetLog.clinicalEmbeddings, candidateEmbeddings, 5);
+
+    if (!result.available) {
+        return res.status(503).json({ success: false, message: 'Similarity search service unavailable.' });
+    }
+
+    const similarCases = result.indices.map((idx, i) => ({
+        patient: candidates[idx].patient,
+        score: result.scores[i],
+        loggedAt: candidates[idx].createdAt,
+        symptoms: candidates[idx].symptoms.map(s => s.name)
+    }));
+
+    res.json({
+        success: true,
+        data: similarCases,
+        note: 'NON-DIAGNOSTIC SIMILARITY: These results indicate historical patterns only. Decision remains with the doctor.',
+        disclaimer: 'ClinicalBERT-powered clinical similarity search.'
     });
 });
 

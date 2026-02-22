@@ -7,6 +7,9 @@ const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const audit = require('../middleware/audit');
 const { parseMedicalReport } = require('../services/llmService');
+const { extractEntities, extractEntitiesOCR, classifyDocument } = require('../services/clinicalBertService');
+const fs = require('fs');
+const { PDFParse } = require('pdf-parse');
 
 // ─── POST /api/reports/upload ─────────────────────────────────────────────
 router.post(
@@ -116,6 +119,19 @@ router.delete('/:id', protect, async (req, res) => {
     res.json({ success: true, message: 'Report deleted.' });
 });
 
+// ─── POST /api/reports/:id/reparse ────────────────────────────────────────
+router.post('/:id/reparse', protect, authorize('admin', 'doctor'), async (req, res) => {
+    const report = await MedicalReport.findById(req.params.id);
+    if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
+
+    // Trigger re-parsing
+    triggerLLMParsing(report._id).catch((err) =>
+        console.error('LLM re-parse error for report', report._id, err.message)
+    );
+
+    res.json({ success: true, message: 'Re-parsing triggered.' });
+});
+
 // ─── Internal: Async LLM parsing ─────────────────────────────────────────
 async function triggerLLMParsing(reportId) {
     const report = await MedicalReport.findById(reportId);
@@ -124,10 +140,38 @@ async function triggerLLMParsing(reportId) {
     await MedicalReport.findByIdAndUpdate(reportId, { 'parsedData.parseStatus': 'processing' });
 
     try {
-        // In production: extract text from PDF/image using a library like pdf-parse
-        // Here we pass the file metadata as a placeholder
-        const placeholder = `Report type: ${report.reportType}, File: ${report.originalName}, Size: ${report.fileSize} bytes`;
-        const parsed = await parseMedicalReport(placeholder);
+        // Extract text from the uploaded file
+        let extractedText = `Report type: ${report.reportType}, Original Name: ${report.originalName}`;
+
+        try {
+            if (report.mimeType === 'application/pdf') {
+                const dataBuffer = fs.readFileSync(report.filePath);
+                const pdfData = await new PDFParse(dataBuffer);
+                extractedText = pdfData.text || extractedText;
+                console.log(`[OCR] Extracted ${extractedText.length} chars from PDF: ${report.originalName}`);
+            } else if (report.mimeType.startsWith('text/')) {
+                extractedText = fs.readFileSync(report.filePath, 'utf8');
+            }
+        } catch (extractErr) {
+            console.error('Text extraction failed:', extractErr.message);
+            // Fallback to placeholder if extraction fails
+            extractedText = `[SCAN FAILED] ${report.reportType}: ${report.originalName}`;
+        }
+
+        const truncatedText = extractedText.slice(0, 5000); // safety limit
+
+        // Concurrently parse with LLM and ClinicalBERT
+        // Fallback to OCR if text extraction yield next to nothing (< 800 chars)
+        const useOCR = truncatedText.trim().length < 800 && report.mimeType === 'application/pdf';
+        console.log(`[OCR Decider] Text Length: ${truncatedText.trim().length}, MIME: ${report.mimeType}, Use OCR: ${useOCR}`);
+
+        const [parsed, bertEntities, bertClass] = await Promise.all([
+            parseMedicalReport(truncatedText),
+            useOCR ? extractEntitiesOCR(report.filePath) : extractEntities(truncatedText),
+            classifyDocument(truncatedText)
+        ]);
+
+        console.log(`[BERT Result] Entities: ${bertEntities.available}, DocType: ${bertClass.doc_type}`);
 
         await MedicalReport.findByIdAndUpdate(reportId, {
             'parsedData.summary': parsed.summary || 'Summarization unavailable.',
@@ -136,6 +180,18 @@ async function triggerLLMParsing(reportId) {
             'parsedData.rawJson': parsed,
             'parsedData.parsedAt': new Date(),
             'parsedData.parseStatus': 'done',
+            // ClinicalBERT Data
+            clinicalEntities: {
+                symptoms: bertEntities.symptoms || [],
+                conditions: bertEntities.conditions || [],
+                medications: bertEntities.medications || [],
+                tests: bertEntities.tests || []
+            },
+            bertClassification: {
+                docType: bertClass.doc_type || 'unknown',
+                consultationType: bertClass.consultation_type || 'routine',
+                confidence: bertClass.confidence || 0
+            }
         });
     } catch (err) {
         await MedicalReport.findByIdAndUpdate(reportId, {

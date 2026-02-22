@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,8 +27,14 @@ export default function Sidebar() {
     // Check if we are using the new Patient Dashboard redesign
     const isPatient = user?.role === 'patient';
 
+    const [isExpanded, setIsExpanded] = useState(false);
+
     return (
-        <aside className={isPatient ? "pd-sidebar" : "sidebar"}>
+        <aside
+            className={`${isPatient ? "pd-sidebar" : "sidebar"} ${isExpanded ? 'expanded' : ''}`}
+            onMouseEnter={() => isPatient && setIsExpanded(true)}
+            onMouseLeave={() => isPatient && setIsExpanded(false)}
+        >
             {isPatient ? (
                 <>
                     <div className="pd-logo" style={{ background: '#3b82f6', color: '#fff' }}>💙</div>
@@ -38,18 +45,26 @@ export default function Sidebar() {
                                 key={link.path}
                                 className={`pd-nav-link ${location.pathname === link.path ? 'active' : ''}`}
                                 onClick={() => navigate(link.path)}
-                                title={link.label}
+                                title={!isExpanded ? link.label : ''}
                             >
                                 <span style={{ fontSize: '1.25rem' }}>{link.icon}</span>
+                                <span className="pd-nav-label">{link.label}</span>
                             </div>
                         ))}
                     </nav>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
-                        <div className="pd-nav-link" title="Help"><span style={{ fontSize: '1.25rem' }}>❓</span></div>
-                        <div className="pd-nav-link" title="Theme"><span style={{ fontSize: '1.25rem' }}>🏳️</span></div>
-                        <div className="pd-nav-link" title="Logout" onClick={() => { logout(); navigate('/login'); }} style={{ color: '#ef4444' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto', width: '100%' }}>
+                        <div className="pd-nav-link" title={!isExpanded ? "Help" : ""}>
+                            <span style={{ fontSize: '1.25rem' }}>❓</span>
+                            <span className="pd-nav-label">Help</span>
+                        </div>
+                        <div className="pd-nav-link" title={!isExpanded ? "Theme" : ""}>
+                            <span style={{ fontSize: '1.25rem' }}>🏳️</span>
+                            <span className="pd-nav-label">Theme</span>
+                        </div>
+                        <div className="pd-nav-link" title={!isExpanded ? "Logout" : ""} onClick={() => { logout(); navigate('/login'); }} style={{ color: '#ef4444' }}>
                             <span style={{ fontSize: '1.25rem' }}>🚪</span>
+                            <span className="pd-nav-label">Logout</span>
                         </div>
                     </div>
                 </>

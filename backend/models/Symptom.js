@@ -28,6 +28,7 @@ const symptomSchema = new mongoose.Schema(
         status: { type: String, enum: ['pending', 'reviewed', 'closed'], default: 'pending' },
         reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         reviewedAt: { type: Date },
+        clinicalEmbeddings: [{ type: Number }], // BERT embeddings for triage/risk logic
     },
     { timestamps: true }
 );

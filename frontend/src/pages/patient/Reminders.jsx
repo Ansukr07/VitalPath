@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { reminderService } from '../../api/services';
+import './PatientDashboard.css';
 
 const TYPE_ICONS = { appointment: '📅', test: '🧪', follow_up: '🔄', medication: '💊', lifestyle: '🌿', other: '🔔' };
 
@@ -56,101 +57,116 @@ export default function Reminders() {
     const upcoming = sortedReminders.filter(r => new Date(r.scheduledAt) >= new Date());
 
     return (
-        <div className="app-layout">
+        <div className="pd-wrapper">
             <Sidebar />
-            <div className="main-content">
-                <div className="topbar">
-                    <div className="topbar-title">Reminders</div>
-                    <div className="topbar-actions">
-                        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
-                            {showForm ? '✕ Cancel' : '+ New Reminder'}
-                        </button>
+            <main className="pd-content">
+                <header className="pd-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                        <h1 className="pd-page-title">Personal Reminders</h1>
+                        <p className="pd-page-desc">Stay on track with your medical appointments, tests, and health routines.</p>
                     </div>
-                </div>
+                    <button className="pd-urgent-btn" style={{ margin: 0, width: 'auto', background: showForm ? '#1e293b' : 'var(--pd-accent)', color: '#fff' }} onClick={() => setShowForm(!showForm)}>
+                        {showForm ? '✕ Close' : '+ New Reminder'}
+                    </button>
+                </header>
 
-                <div className="page-body">
-                    {error && <div className="alert alert-critical">{error}</div>}
+                {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid #fecaca', fontWeight: 600 }}>⚠️ {error}</div>}
 
-                    {/* Add reminder form */}
-                    {showForm && (
-                        <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
-                            <h3 style={{ marginBottom: '1rem' }}>New Reminder</h3>
-                            <form onSubmit={handleCreate}>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="form-label">Title</label>
-                                        <input className="form-input" placeholder="e.g. Blood test at Apollo" value={form.title} onChange={set('title')} required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Type</label>
-                                        <select className="form-input" value={form.type} onChange={set('type')}>
-                                            {Object.keys(TYPE_ICONS).map(t => <option key={t} value={t}>{t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="form-label">Date & Time</label>
-                                        <input className="form-input" type="datetime-local" value={form.scheduledAt} onChange={set('scheduledAt')} required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Doctor/Location (optional)</label>
-                                        <input className="form-input" placeholder="Dr. Sharma, City Hospital" value={form.doctorName} onChange={set('doctorName')} />
-                                    </div>
+                {showForm && (
+                    <div className="pd-section-card fade-in" style={{ marginBottom: '2.5rem' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem' }}>Create New Reminder</h2>
+                        <form onSubmit={handleCreate}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                <div className="form-group">
+                                    <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Subject</label>
+                                    <input className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', textAlign: 'left', width: '100%', borderRadius: '12px' }} placeholder="e.g. Cardiology Follow-up" value={form.title} onChange={set('title')} required />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Notes (optional)</label>
-                                    <input className="form-input" placeholder="Fasting required, bring previous reports…" value={form.description} onChange={set('description')} />
+                                    <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Category</label>
+                                    <select className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', width: '100%', borderRadius: '12px', padding: '0 1rem' }} value={form.type} onChange={set('type')}>
+                                        {Object.keys(TYPE_ICONS).map(t => <option key={t} value={t}>{t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>)}
+                                    </select>
                                 </div>
-                                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Reminder'}</button>
-                            </form>
-                        </div>
-                    )}
+                                <div className="form-group">
+                                    <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Date & Time</label>
+                                    <input className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', width: '100%', borderRadius: '12px', padding: '0 1rem', textAlign: 'left' }} type="datetime-local" value={form.scheduledAt} onChange={set('scheduledAt')} required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Location/Provider</label>
+                                    <input className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', textAlign: 'left', width: '100%', borderRadius: '12px' }} placeholder="e.g. City General, Dr. Smith" value={form.doctorName} onChange={set('doctorName')} />
+                                </div>
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '2.5rem' }}>
+                                <label className="pd-app-role" style={{ marginBottom: '0.5rem', display: 'block' }}>Additional Notes</label>
+                                <textarea className="pd-urgent-btn" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', textAlign: 'left', width: '100%', borderRadius: '12px', height: '100px', padding: '1rem', resize: 'none' }} placeholder="Important details like fasting, medications, etc." value={form.description} onChange={set('description')} />
+                            </div>
+                            <button type="submit" className="pd-urgent-btn" style={{ margin: 0, width: '200px', background: 'var(--pd-accent)' }} disabled={saving}>
+                                {saving ? 'Adding...' : 'Confirm Reminder'}
+                            </button>
+                        </form>
+                    </div>
+                )}
 
-                    {/* Overdue */}
+                <div> {/* Removed maxWidth: '1000px' */}
                     {overdue.length > 0 && (
-                        <>
-                            <h2 className="section-heading" style={{ color: 'var(--high)' }}>⚠️ Overdue ({overdue.length})</h2>
-                            <ReminderList items={overdue} onDone={handleMarkDone} onDelete={handleDelete} />
-                        </>
+                        <div>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                ⚠️ Overdue <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 500 }}>({overdue.length})</span>
+                            </h2>
+                            <ReminderList items={overdue} onDone={handleMarkDone} onDelete={handleDelete} status="overdue" />
+                        </div>
                     )}
 
-                    {/* Upcoming */}
-                    <h2 className="section-heading">Upcoming ({upcoming.length})</h2>
-                    {loading ? <div className="spinner" /> : upcoming.length === 0 ? (
-                        <div className="glass-card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                            No upcoming reminders. Add one above!
-                        </div>
-                    ) : (
-                        <ReminderList items={upcoming} onDone={handleMarkDone} onDelete={handleDelete} />
-                    )}
+                    <div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem' }}>
+                            {upcoming.length > 0 ? 'Upcoming Schedule' : 'No Upcoming Tasks'}
+                        </h2>
+                        {loading ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner" /></div>
+                        ) : upcoming.length === 0 ? (
+                            <div className="pd-section-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>🗓️</div>
+                                <p style={{ color: 'var(--pd-text-muted)', fontWeight: 600 }}>You're all caught up! No upcoming reminders.</p>
+                            </div>
+                        ) : (
+                            <ReminderList items={upcoming} onDone={handleMarkDone} onDelete={handleDelete} status="upcoming" />
+                        )}
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
 
-function ReminderList({ items, onDone, onDelete }) {
+function ReminderList({ items, onDone, onDelete, status }) {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {items.map((r) => {
                 const d = new Date(r.scheduledAt);
                 const isToday = d.toDateString() === new Date().toDateString();
                 return (
-                    <div key={r._id} className="glass-card" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', borderColor: isToday ? 'rgba(167,139,250,0.4)' : 'var(--glass-border)' }}>
-                        <div style={{ fontSize: '2rem', flexShrink: 0 }}>{TYPE_ICONS[r.type] || '🔔'}</div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700, marginBottom: '0.2rem' }}>{r.title}</div>
-                            <div style={{ fontSize: '0.82rem', color: isToday ? 'var(--primary-light)' : 'var(--text-muted)', fontWeight: isToday ? 700 : 400 }}>
-                                📅 {d.toLocaleDateString()} {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                {isToday && <span style={{ marginLeft: '0.5rem', background: 'rgba(167,139,250,0.15)', padding: '2px 8px', borderRadius: '20px', fontSize: '0.7rem' }}>TODAY</span>}
+                    <div key={r._id} className="pd-section-card" style={{ padding: '1.5rem', border: isToday ? '2px solid var(--pd-accent)' : '1px solid var(--pd-border)' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                            <div style={{ width: 56, height: 56, borderRadius: '16px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', flexShrink: 0 }}>
+                                {TYPE_ICONS[r.type] || '🔔'}
                             </div>
-                            {r.doctorName && <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '0.2rem' }}>👨‍⚕️ {r.doctorName}</div>}
-                            {r.description && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>{r.description}</div>}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                            <button className="btn btn-outline btn-sm" onClick={() => onDone(r._id)}>✓ Done</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => onDelete(r._id)}>✕</button>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{r.title}</h3>
+                                        <div style={{ fontSize: '0.85rem', color: status === 'overdue' ? '#ef4444' : isToday ? 'var(--pd-accent)' : '#64748b', fontWeight: 700 }}>
+                                            {isToday ? 'TODAY at ' : ''}
+                                            {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} • {d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button onClick={() => onDone(r._id)} style={{ border: '1px solid #e2e8f0', background: '#fff', padding: '0.5rem 1rem', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#f8fafc'} onMouseLeave={(e) => e.target.style.background = '#fff'}>✓ Done</button>
+                                        <button onClick={() => onDelete(r._id)} style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem' }}>🗑️</button>
+                                    </div>
+                                </div>
+                                {r.doctorName && <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}><span>📍</span> {r.doctorName}</div>}
+                                {r.description && <div style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.5, background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '4px solid #e2e8f0' }}>{r.description}</div>}
+                            </div>
                         </div>
                     </div>
                 );

@@ -18,6 +18,7 @@ export const patientService = {
     submitSymptoms: (data) => api.post('/patients/symptoms', data),
     getSymptomHistory: () => api.get('/patients/symptoms'),
     getTriageHistory: () => api.get('/patients/triage/history'),
+    getClinicalInsights: (text) => api.post('/patients/clinical-insights', { text }),
 };
 
 // ── Doctors ─────────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ export const doctorService = {
     getPatientSummary: (id) => api.get(`/doctors/patients/${id}/summary`),
     overrideTriage: (id, d) => api.post(`/doctors/patients/${id}/override`, d),
     getAlerts: () => api.get('/doctors/alerts'),
+    getSimilarity: (id) => api.get(`/doctors/patients/${id}/similarity`),
 };
 
 // ── Reports ─────────────────────────────────────────────────────────────────

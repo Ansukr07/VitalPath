@@ -144,7 +144,7 @@
 
 .pd-stat-desc {
     font-size: 0.85rem;
-    color: var(--pd-pd-text-muted);
+    color: var(--pd-text-muted);
     line-height: 1.4;
 }
 
@@ -256,11 +256,12 @@
 
 .pd-urgent-illustration {
     position: absolute;
-    bottom: -20px;
-    right: -20px;
-    width: 140px;
-    height: 140px;
-    opacity: 0.8;
+    bottom: -10px;
+    right: -10px;
+    width: 160px;
+    height: 160px;
+    opacity: 0.9;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
 }
 
 /* ── Exercise List ── */
@@ -423,40 +424,58 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 0;
+    padding: 2rem 1rem;
     gap: 2.5rem;
     height: 100vh;
     position: sticky;
     top: 0;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    overflow-x: hidden;
+}
+
+.pd-sidebar.expanded {
+    width: 260px;
+    align-items: flex-start;
 }
 
 .pd-logo {
     width: 40px;
     height: 40px;
-    background: var(--pd-pd-accent);
+    background: var(--pd-accent);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .pd-nav-list {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
     flex: 1;
+    width: 100%;
 }
 
 .pd-nav-link {
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--pd-text-muted);
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.pd-sidebar.expanded .pd-nav-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 1rem;
 }
 
 .pd-nav-link.active {
@@ -468,6 +487,54 @@
 .pd-nav-link:hover:not(.active) {
     background: #f1f5f9;
     color: var(--pd-text);
+}
+
+.pd-nav-label {
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    display: none;
+    /* Hide from layout when collapsed */
+    transition: opacity 0.2s ease;
+    font-weight: 500;
+    margin-left: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.pd-sidebar.expanded .pd-nav-label {
+    opacity: 1;
+    visibility: visible;
+    display: block;
+    /* Show in layout when expanded */
+}
+
+/* ── Unified Page Layouts ── */
+.pd-page-header {
+    margin-bottom: 2rem;
+}
+
+.pd-page-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--pd-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.pd-page-desc {
+    color: var(--pd-text-muted);
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.pd-section-card {
+    background: var(--pd-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--pd-border);
+    border-radius: var(--pd-radius);
+    padding: 2.5rem;
+    box-shadow: var(--pd-shadow);
 }
 
 /* ── Responsive ── */

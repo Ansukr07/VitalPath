@@ -17,6 +17,9 @@ export default function PatientDashboard() {
         reports: []
     });
     const [error, setError] = useState('');
+    const [chatText, setChatText] = useState('');
+    const [liveInsights, setLiveInsights] = useState({ symptoms: [], medications: [], tests: [] });
+    const [showInsights, setShowInsights] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,6 +49,30 @@ export default function PatientDashboard() {
 
         fetchData();
     }, []);
+
+    // Debounced Live Insights from ClinicalBERT
+    useEffect(() => {
+        if (chatText.length < 5) {
+            setLiveInsights({ symptoms: [], medications: [], tests: [] });
+            setShowInsights(false);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                const res = await patientService.getClinicalInsights(chatText);
+                if (res.data.success) {
+                    setLiveInsights(res.data.data);
+                    const hasData = res.data.data.symptoms.length > 0 || res.data.data.medications.length > 0;
+                    setShowInsights(hasData);
+                }
+            } catch (err) {
+                console.warn('Live insights unavailable');
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [chatText]);
 
     // ── Data Mapping Helpers ──
     const latestTriage = stats.triageHistory[0];
@@ -177,15 +204,118 @@ export default function PatientDashboard() {
                                 </div>
                             </div>
 
-                            <div className="pd-urgent-card">
-                                <div>
-                                    <h3>Urgent Support</h3>
-                                    <p>Contact crisis hotlines immediately if you're in distress.</p>
+                            <div className="pd-urgent-card" style={{
+                                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                padding: '2.5rem 1.5rem',
+                                gap: '1.25rem'
+                            }}>
+                                {/* Orb at Top */}
+                                <div style={{
+                                    width: '160px',
+                                    height: '160px',
+                                    borderRadius: '50%',
+                                    overflow: 'hidden',
+                                    border: 'none',
+                                    boxShadow: '0 0 50px rgba(59, 130, 246, 0.5)',
+                                    flexShrink: 0
+                                }}>
+                                    <video
+                                        src="/orb.mp4"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 </div>
 
-                                <div className="pd-urgent-illustration">🪷</div>
+                                <div style={{ flex: 1 }}>
+                                    <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>AI Support Assistant</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Ask me about your health insights or symptoms.</p>
+                                </div>
 
-                                <button className="pd-urgent-btn" onClick={() => navigate('/patient/symptoms')}>Get help now</button>
+                                {/* Integrated Chat Bar */}
+                                <div style={{ width: '100%', position: 'relative', marginTop: 'auto' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Ask anything..."
+                                        value={chatText}
+                                        onChange={(e) => setChatText(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '25px',
+                                            padding: '0.75rem 3rem 0.75rem 1.25rem',
+                                            color: '#fff',
+                                            outline: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                    />
+
+                                    {/* Live Insights Overlay */}
+                                    {showInsights && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '100%',
+                                            left: '0',
+                                            width: '100%',
+                                            background: 'rgba(30, 41, 59, 0.95)',
+                                            backdropFilter: 'blur(10px)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            marginBottom: '1rem',
+                                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                                            textAlign: 'left',
+                                            boxShadow: '0 -10px 25px rgba(0,0,0,0.3)',
+                                            zIndex: 10
+                                        }}>
+                                            <div style={{ fontSize: '0.7rem', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+                                                ClinicalBERT Insights
+                                            </div>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                {liveInsights.symptoms.map((s, i) => (
+                                                    <span key={i} style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid rgba(59,130,246,0.2)' }}>
+                                                        Symptom: {s}
+                                                    </span>
+                                                ))}
+                                                {liveInsights.medications.map((m, i) => (
+                                                    <span key={i} style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                                        Medication: {m}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.75rem' }}>
+                                                Extracting clinical context safely...
+                                            </div>
+                                        </div>
+                                    )}
+                                    <button
+                                        style={{
+                                            position: 'absolute',
+                                            right: '6px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'var(--pd-accent)',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '32px',
+                                            height: '32px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
+                                        }}
+                                    >
+                                        <span style={{ transform: 'rotate(-90deg)', display: 'inline-block' }}>▼</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
