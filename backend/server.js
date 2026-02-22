@@ -1,0 +1,69 @@
+require('dotenv').config();
+require('express-async-errors');
+
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const path = require('path');
+const rateLimit = require('express-rate-limit');
+
+// Route imports
+const authRoutes = require('./routes/auth');
+const patientRoutes = require('./routes/patients');
+const doctorRoutes = require('./routes/doctors');
+const reportRoutes = require('./routes/reports');
+const triageRoutes = require('./routes/triage');
+const reminderRoutes = require('./routes/reminders');
+const adminRoutes = require('./routes/admin');
+
+const errorHandler = require('./middleware/errorHandler');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ─── Security & Parsing ────────────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
+
+// ─── Rate Limiting ─────────────────────────────────────────────────────────
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
+app.use('/api/', limiter);
+
+// ─── Static Files (uploads) ────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ─── Routes ───────────────────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/triage', triageRoutes);
+app.use('/api/reminders', reminderRoutes);
+app.use('/api/admin', adminRoutes);
+
+// ─── Health Check ─────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'MedicAI Backend' });
+});
+
+// ─── Error Handler ────────────────────────────────────────────────────────
+app.use(errorHandler);
+
+// ─── Database + Server Start ──────────────────────────────────────────────
+mongoose
+  .connect(process.env.MONGO_URI, { dbName: 'medic_db' })
+  .then(() => {
+    console.log('✅  MongoDB connected');
+    app.listen(PORT, () => console.log(`🚀  Server running on port ${PORT}`));
+  })
+  .catch((err) => {
+    console.error('❌  MongoDB connection error:', err.message);
+    process.exit(1);
+  });
+
+module.exports = app;

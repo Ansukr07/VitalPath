@@ -1,0 +1,35 @@
+const mongoose = require('mongoose');
+
+const medicalReportSchema = new mongoose.Schema(
+    {
+        patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        fileName: { type: String, required: true },
+        originalName: { type: String, required: true },
+        mimeType: { type: String, required: true },
+        fileSize: { type: Number },           // bytes
+        filePath: { type: String, required: true },
+        reportType: {
+            type: String,
+            enum: ['blood_test', 'xray', 'mri', 'ct_scan', 'ecg', 'urine_test', 'biopsy', 'prescription', 'discharge_summary', 'other'],
+            default: 'other',
+        },
+        reportDate: { type: Date },              // date on the report itself
+        // LLM-parsed structured data
+        parsedData: {
+            summary: { type: String },           // LLM plain-language summary for patient
+            keyValues: { type: Map, of: String },  // e.g. { "hemoglobin": "12.5 g/dL" }
+            flaggedItems: [{ type: String }],         // items outside normal range
+            rawJson: { type: mongoose.Schema.Types.Mixed },
+            parsedAt: { type: Date },
+            parseStatus: { type: String, enum: ['pending', 'processing', 'done', 'failed'], default: 'pending' },
+        },
+        doctorNotes: { type: String },
+        reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        reviewedAt: { type: Date },
+        isDeleted: { type: Boolean, default: false },
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model('MedicalReport', medicalReportSchema);
