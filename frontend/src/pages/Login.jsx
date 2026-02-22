@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../api/services';
+import './Auth.css';
 
 export default function Login() {
     const [form, setForm] = useState({ email: '', password: '' });
@@ -27,127 +28,48 @@ export default function Login() {
     };
 
     return (
-        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div className="auth-page-wrapper">
+            <div className="auth-container">
+                {/* ── Left Side: Form ── */}
+                <div className="auth-left-panel">
+                    <div className="auth-brand-icon">
+                        <div className="auth-brand-mark">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#000">
+                                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" />
+                            </svg>
+                        </div>
+                    </div>
 
-            {/* ── Fullscreen hero video ── */}
-            <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    zIndex: 0,
-                    filter: 'brightness(0.35) saturate(1.2)',
-                }}
-            >
-                <source src="/hand.mp4" type="video/mp4" />
-            </video>
-
-            {/* ── Gradient overlay ── */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(135deg, rgba(10,10,20,0.6) 0%, rgba(124,58,237,0.15) 50%, rgba(10,10,20,0.7) 100%)',
-                zIndex: 1,
-            }} />
-
-            {/* ── Brand mark (top-left) ── */}
-            <div style={{
-                position: 'absolute',
-                top: '2rem',
-                left: '2.5rem',
-                zIndex: 3,
-                fontSize: '1.4rem',
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
-                color: 'rgba(255,255,255,0.9)',
-                textShadow: '0 2px 12px rgba(0,0,0,0.5)',
-            }}>
-                VitalPath
-            </div>
-
-            {/* ── Hero tagline (left panel, desktop) ── */}
-            <div style={{
-                position: 'absolute',
-                left: '4rem',
-                bottom: '4rem',
-                zIndex: 3,
-                maxWidth: 420,
-            }}>
-                <h1 style={{
-                    fontSize: 'clamp(1.6rem, 3vw, 2.8rem)',
-                    fontWeight: 900,
-                    lineHeight: 1.18,
-                    letterSpacing: '-0.03em',
-                    color: '#fff',
-                    textShadow: '0 4px 24px rgba(0,0,0,0.6)',
-                    marginBottom: '0.75rem',
-                }}>
-                    Healthcare<br />
-                    <span style={{ color: 'var(--primary-light)' }}>decision support</span><br />
-                    for every patient.
-                </h1>
-                <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 340 }}>
-                    Rule-based triage · ML-assisted scoring · Doctor-first override. Every output reviewed by a licensed professional.
-                </p>
-            </div>
-
-            {/* ── Login card ── */}
-            <div style={{
-                position: 'relative',
-                zIndex: 4,
-                width: '100%',
-                maxWidth: 440,
-                margin: '0 auto',
-                padding: '0 1rem',
-                /* Push card to right on wider screens */
-            }}>
-                <div style={{
-                    background: 'rgba(12, 12, 22, 0.82)',
-                    backdropFilter: 'blur(24px)',
-                    WebkitBackdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(167, 139, 250, 0.2)',
-                    borderRadius: '20px',
-                    padding: '2.5rem 2rem',
-                    boxShadow: '0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
-                }}>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
-                        Welcome back
-                    </h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.75rem' }}>
-                        Sign in to your healthcare platform
+                    <h1 className="auth-main-title">Welcome back!</h1>
+                    <p className="auth-main-desc">
+                        We empower doctors and patients to create, simulate, and manage clinical workflows visually.
                     </p>
 
                     {error && (
-                        <div className="alert alert-critical" style={{ marginBottom: '1rem', fontSize: '0.84rem' }}>
+                        <div className="alert alert-critical" style={{ marginBottom: '1.5rem', maxWidth: '400px' }}>
                             ⚠️ {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label className="form-label">Email Address</label>
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <div className="auth-input-group">
+                            <label className="auth-input-label">Email</label>
                             <input
-                                className="form-input"
+                                className="auth-field"
                                 type="email"
-                                placeholder="name@example.com"
+                                placeholder="youremail@yourdomain.com"
                                 value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                                 required
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Password</label>
+                        <div className="auth-input-group">
+                            <label className="auth-input-label">Password</label>
                             <input
-                                className="form-input"
+                                className="auth-field"
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="Enter your password"
                                 value={form.password}
                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                                 required
@@ -156,54 +78,62 @@ export default function Login() {
 
                         <button
                             type="submit"
-                            className="btn btn-primary btn-lg"
-                            style={{ width: '100%', marginTop: '0.5rem' }}
+                            className="auth-submit-btn"
                             disabled={loading}
                         >
-                            {loading ? 'Signing in…' : 'Sign In →'}
+                            {loading ? 'Signing in...' : 'Sign in'}
                         </button>
                     </form>
 
-                    {/* Quick demo fill */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                        <button
-                            type="button"
-                            className="btn btn-outline btn-sm"
-                            style={{ flex: 1, borderRadius: '8px', fontSize: '0.75rem' }}
-                            onClick={() => setForm({ email: 'patient@demo.com', password: 'Demo@1234' })}
-                        >
-                            🏥 Fill Patient Demo
+                    <div className="auth-divider">
+                        <div className="auth-divider-line"></div>
+                        <span className="auth-divider-text">or</span>
+                        <div className="auth-divider-line"></div>
+                    </div>
+
+                    <div className="auth-social-row">
+                        <button className="auth-social-btn">
+                            <svg className="auth-social-icon" viewBox="0 0 24 24">
+                                <path fill="#EA4335" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
+                                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09c1.97 3.92 6.02 6.62 10.71 6.62z" />
+                                <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.99 11.99 0 0 0 0 10.76l3.98-3.09z" />
+                                <path fill="#4285F4" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
+                            </svg>
                         </button>
-                        <button
-                            type="button"
-                            className="btn btn-outline btn-sm"
-                            style={{ flex: 1, borderRadius: '8px', fontSize: '0.75rem' }}
-                            onClick={() => setForm({ email: 'doctor@demo.com', password: 'Demo@1234' })}
-                        >
-                            👨‍⚕️ Fill Doctor Demo
+                        <button className="auth-social-btn">
+                            <svg className="auth-social-icon" fill="#1877F2" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.248h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                        </button>
+                        <button className="auth-social-btn">
+                            <svg className="auth-social-icon" fill="#fff" viewBox="0 0 24 24">
+                                <path d="M17.057 1.258a5.16 5.16 0 0 0-2.316.32 4.49 4.49 0 0 0-2.091 1.94 5.343 5.343 0 0 0-.25 4.3c.312 1.326.96 2.503 1.92 3.491 1.282 1.322 2.923 2.162 4.814 2.378 1.178.134 2.327-.042 3.376-.525a5.532 5.532 0 0 0 2.645-3.081 5.343 5.343 0 0 0-.212-4.148c-.686-1.748-2.126-3.21-3.957-4.116a6.83 6.83 0 0 0-3.93-.559M13.25 10.42c-2.365.173-4.482 1.054-6.19 2.583-1.848 1.652-2.924 3.86-3.203 6.273a9.8 9.8 0 0 0 .193 3.471h4.085c-.09-.597-.13-1.192-.119-1.782.046-2.61.91-4.88 2.611-6.726.853-.925 1.873-1.666 3.024-2.203.882-.411 1.829-.701 2.825-.862-.355-.262-.725-.487-1.115-.688a4.912 4.912 0 0 0-2.121-.067" />
+                            </svg>
                         </button>
                     </div>
 
-                    <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                        Don't have an account?{' '}
-                        <Link to="/register" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>
-                            Create account
-                        </Link>
+                    <div className="auth-panel-footer">
+                        Don't have an account? <Link to="/register">Sign up</Link>
                     </div>
+                </div>
 
-                    <div style={{
-                        fontSize: '0.72rem',
-                        color: 'rgba(255,255,255,0.3)',
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '8px',
-                        padding: '0.6rem 0.9rem',
-                        marginTop: '1.25rem',
-                        fontStyle: 'italic',
-                        lineHeight: 1.5,
-                    }}>
-                        <strong style={{ color: 'rgba(255,255,255,0.45)' }}>⚕️ Decision Support Only:</strong> All
-                        outputs are for clinical decision-support and must be reviewed by a licensed doctor. Not a diagnostic tool.
+                {/* ── Right Side: Visual ── */}
+                <div className="auth-right-panel">
+                    <div className="auth-visual-card">
+                        <div className="auth-visual-bg"></div>
+
+                        <div className="auth-tag-row">
+                            <span className="auth-tag">Platform for Healthcare</span>
+                            <span className="auth-tag">Decision Support</span>
+                        </div>
+
+                        <div className="auth-testimonial-box">
+                            <p className="auth-testimonial-text">
+                                "VitalPath has completely changed how we handle patient triage. What used to take hours every week is now streamlined and clinician-verified in minutes."
+                            </p>
+                            <span className="auth-author-name">Dr. Sarah Jenkins</span>
+                            <span className="auth-author-title">Chief of Staff, Metro General</span>
+                        </div>
                     </div>
                 </div>
             </div>
