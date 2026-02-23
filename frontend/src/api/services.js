@@ -51,6 +51,11 @@ export const reminderService = {
     delete: (id) => api.delete(`/reminders/${id}`),
 };
 
+// ── Chat ────────────────────────────────────────────────────────────────────
+export const chatService = {
+    sendMessage: (message, history) => api.post('/chat', { message, history }),
+};
+
 // ── Triage ───────────────────────────────────────────────────────────────────
 export const triageService = {
     getLatest: (patientId) => api.get(`/triage/${patientId}/latest`),

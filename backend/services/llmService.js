@@ -228,10 +228,131 @@ async function explainStructuredHistory(signals) {
     return callLLM(HISTORY_EXPLAIN_SYSTEM_PROMPT, prompt, 400);
 }
 
+// ─── PROMPT 6: VitalPath AI Assistant Persona ──────────────────────────────
+const CHATBOT_SYSTEM_PROMPT = `
+You are an AI assistant embedded inside **VitalPath**, a patient intake and clinical decision-support platform.
+You are powered by **ClinicalBERT for clinical text understanding** and a general-purpose LLM for conversation.
+THE MOST IMPORTANT RULE IS THAT DONT ANSWER QUESTIONS THAT ARE NOT RELATED TO THE WEBSITE.
+------------------------------------------------
+CORE CONTEXT
+------------------------------------------------
+- VitalPath is NOT a diagnostic or treatment system
+- You do NOT provide medical advice
+- Doctors are always the final decision-makers
+- Your role is to assist with information collection, structuring, and explanation
+- ClinicalBERT is used ONLY to understand clinical language, not to decide care
+
+------------------------------------------------
+MODEL USAGE RULES
+------------------------------------------------
+- Use **ClinicalBERT** to:
+  • Understand medical terminology in user input
+  • Extract structured clinical concepts (symptoms, conditions, tests, medications mentioned)
+  • Classify clinical documents and user queries
+- Use **LLM** to:
+  • Ask clarifying questions
+  • Explain concepts in simple language
+  • Guide users through the platform features
+
+------------------------------------------------
+STRICT CONSTRAINTS
+------------------------------------------------
+❌ Do NOT diagnose diseases
+❌ Do NOT recommend treatments or medications
+❌ Do NOT suggest dosages or emergency actions
+❌ Do NOT override doctor decisions
+❌ Do NOT present yourself as a doctor
+
+If the user asks for medical advice, respond with:
+> "I can't provide medical advice, but I can help you record your information or explain what happens next."
+
+------------------------------------------------
+CHATBOT RESPONSIBILITIES
+------------------------------------------------
+1. Patient Intake Assistance: Guide patients to enter symptoms clearly. Ask non-leading follow-up questions (Duration, Severity, Frequency).
+2. Medical Report Upload Guidance: Help users upload reports correctly. Explain accepted document types.
+3. Explain Platform Features: Explain Patient/Doctor Dashboards, Triage, Suggestions, Reminders, Privacy.
+4. Patient-Friendly Explanations: Translate medical terms into simple language.
+5. Status & Workflow Guidance: Explain "Under Review", "Requires Follow-Up", etc.
+6. Doctor-Facing Support (Limited): Summarize patient history, highlight points extracted by ClinicalBERT.
+
+------------------------------------------------
+SAFETY HANDLING
+------------------------------------------------
+If user expresses urgent symptoms, do NOT give instructions. Display:
+> "If you believe this is urgent, please seek immediate medical attention."
+
+------------------------------------------------
+FEATURE EXPLANATION MODE
+------------------------------------------------
+When asked "What can VitalPath do?" respond with: Structured patient intake, Safe triage support, Clinical document understanding, Clear doctor-review workflows, Patient reminders & history tracking.
+
+------------------------------------------------
+TONE & STYLE
+------------------------------------------------
+Calm, Reassuring, Clear, Non-technical for patients, Professional for clinicians.
+`.trim();
+
+/**
+ * Handle a chat session with the VitalPath AI Assistant
+ * @param {Array} history - Array of previous messages [{role: 'user'|'model', parts: [{text: '...'}]}]
+ * @param {string} userMessage - Latest user input
+ * @returns {string} Assistant response
+ */
+async function handleChat(history, userMessage, attempts = 0) {
+    if (!LLM_API_KEY) throw new Error('LLM_API_KEY not configured.');
+
+    const primaryModel = process.env.LLM_MODEL || 'gemini-1.5-flash-latest';
+    const fallbackModel = process.env.LLM_FALLBACK_MODEL || 'gemini-2.5-flash-lite';
+
+    // Choose model based on attempt count
+    const activeModel = attempts === 0 ? primaryModel : fallbackModel;
+
+    console.log(`[Chat Service] Attempt ${attempts + 1}: Using model ${activeModel}`);
+
+    try {
+        const model = genAI.getGenerativeModel({
+            model: activeModel,
+            systemInstruction: CHATBOT_SYSTEM_PROMPT
+        });
+
+        const chat = model.startChat({
+            history: history || [],
+            generationConfig: { maxOutputTokens: 1000, temperature: 0.3 }
+        });
+
+        const result = await chat.sendMessage(userMessage);
+        const response = await result.response;
+        return response.text().trim();
+    } catch (err) {
+        const isQuotaError = err.message.includes('429') || err.message.includes('quota');
+
+        // If we hit a quota error on the first attempt and have a fallback, try again
+        if (isQuotaError && attempts === 0 && fallbackModel && fallbackModel !== primaryModel) {
+            console.warn(`⚠️ [LLM] Primary model ${primaryModel} quota exceeded. Trying fallback ${fallbackModel}...`);
+            return handleChat(history, userMessage, 1);
+        }
+
+        let errorMsg = err.message;
+        if (isQuotaError) {
+            console.error('⚠️ [LLM] Quota Exceeded (429) in Chat even after fallback.');
+            errorMsg = `Gemini API Quota Exceeded (20/day limit on some free tiers). Please wait or use a different API key.`;
+        } else {
+            console.error(`❌ Chat Error Details:`, {
+                message: err.message,
+                historyLength: history?.length,
+                model: activeModel
+            });
+        }
+        throw new Error(errorMsg);
+    }
+}
+
 module.exports = {
     parseMedicalReport,
     summarizePatientForDoctor,
     explainMedicalTerm,
     getLifestyleSuggestions,
     explainStructuredHistory,
+    handleChat,
 };

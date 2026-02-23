@@ -17,6 +17,8 @@ const reportRoutes = require('./routes/reports');
 const triageRoutes = require('./routes/triage');
 const reminderRoutes = require('./routes/reminders');
 const adminRoutes = require('./routes/admin');
+const chatRoutes = require('./routes/chat');
+
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -64,6 +66,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/triage', triageRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
+
 
 // ─── Health Check ─────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
